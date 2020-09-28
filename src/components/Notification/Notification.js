@@ -4,12 +4,12 @@ import { Collapse, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 
 export default function ErrorNotification(props) {
-  const { close, message, visible } = props;
+  const { close, message, type, visible } = props;
 
   return (
     <Collapse in={visible}>
       <Alert
-        severity="error"
+        severity={type}
         action={
           <IconButton
             aria-label="close"
