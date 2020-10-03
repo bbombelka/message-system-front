@@ -19,6 +19,7 @@ import Notification from '../Notification/Notification';
 import errorsEnum from '../../../enums/errors.enum';
 import React, { Component } from 'react';
 import regexEnum from '../../../enums/regex.enum';
+import { withRouter } from 'react-router';
 import { withStyles } from '@material-ui/core/styles';
 import {
   Message,
@@ -28,7 +29,9 @@ import {
 } from '@material-ui/icons/';
 import './styles.css';
 
-export default class LoginForm extends Component {
+class LoginFormComponent extends Component {
+  componentWillUnmount() {}
+
   state = {
     isMakingRequest: false,
     loginTextFieldIsDisabled: false,
@@ -121,7 +124,13 @@ export default class LoginForm extends Component {
 
   onLogInButtonClick = () => {
     const data = this.getFormData();
-    this.makeLoginRequest(data);
+    this.setState(
+      {
+        isMakingRequest: true,
+        loginButtonIsDisabled: true,
+      },
+      () => this.makeLoginRequest(data)
+    );
   };
 
   getFormData = () => {
@@ -136,32 +145,30 @@ export default class LoginForm extends Component {
 
   makeLoginRequest = async (data) => {
     try {
-      this.setState({
-        isMakingRequest: true,
-        loginButtonIsDisabled: true,
-      });
       const response = await axios.post(config.SERVER_URL + 'login', data);
       this.onSuccessfulResponse(response);
     } catch (error) {
       this.onErrorResponse(error);
-    } finally {
-      this.setState({
-        isMakingRequest: false,
-        loginTextFieldValue: '',
-        passwordTextFieldValue: '',
-        passwordTextFieldIsDisabled: true,
-      });
     }
+  };
+
+  resetForm = () => {
+    this.setState({
+      isMakingRequest: false,
+      loginTextFieldValue: '',
+      passwordTextFieldValue: '',
+      passwordTextFieldIsDisabled: true,
+    });
   };
 
   onSuccessfulResponse = (response) => {
     const requestNotificationMessage = copyEnum.GENERIC_LOGIN_SUCCESS;
     this.persistWebTokens(response.data.data);
-
-    this.showNotification({
-      requestNotificationMessage,
+    this.showNotification({ requestNotificationMessage }, () => {
+      this.setState({ loginTextFieldIsDisabled: true }, () =>
+        setTimeout(this.proceedToMessages, 500)
+      );
     });
-    this.setState({ loginTextFieldIsDisabled: true });
   };
 
   persistWebTokens = (tokens) => {
@@ -170,26 +177,37 @@ export default class LoginForm extends Component {
     );
   };
 
+  proceedToMessages = () => {
+    this.props.showFullscreenLoader();
+    this.props.history.push('/messages');
+  };
+
   onErrorResponse = (error) => {
     const errorResponse = (error.response && error.response.data) || {};
     const requestNotificationMessage =
       errorResponse.msg || errorsEnum.GENERIC_LOGIN_ERROR;
 
-    this.showNotification({
-      requestNotificationMessage,
-      requestNotificationType: 'error',
-    });
+    this.showNotification(
+      {
+        requestNotificationMessage,
+        requestNotificationType: 'error',
+      },
+      this.resetForm
+    );
   };
 
-  showNotification = ({
-    requestNotificationMessage,
-    requestNotificationType = 'success',
-  }) => {
-    this.setState({
-      requestNotificationMessage,
-      requestNotificationType,
-      showRequestNotification: true,
-    });
+  showNotification = (
+    { requestNotificationMessage, requestNotificationType = 'success' },
+    callback = () => null
+  ) => {
+    this.setState(
+      {
+        requestNotificationMessage,
+        requestNotificationType,
+        showRequestNotification: true,
+      },
+      () => callback()
+    );
   };
 
   closeNotification = () => {
@@ -299,3 +317,7 @@ export default class LoginForm extends Component {
     );
   }
 }
+
+const LoginForm = withRouter(LoginFormComponent);
+
+export default LoginForm;
