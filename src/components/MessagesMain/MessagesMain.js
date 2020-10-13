@@ -1,7 +1,12 @@
 import React from 'react';
+import ThreadList from '../ThreadList/ThreadList';
 
 const MessagesMain = (props) => {
-  return <div>this is messages main</div>;
+  return (
+    <div>
+      <ThreadList />
+    </div>
+  );
 };
 
 export default MessagesMain;

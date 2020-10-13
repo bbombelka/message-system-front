@@ -30,8 +30,6 @@ import {
 import './styles.css';
 
 class LoginFormComponent extends Component {
-  componentWillUnmount() {}
-
   state = {
     isMakingRequest: false,
     loginTextFieldIsDisabled: false,
@@ -243,7 +241,7 @@ class LoginFormComponent extends Component {
           <CardHeader
             title="Welcome to Message System"
             avatar={
-              <Avatar aria-label="recipe">
+              <Avatar>
                 <Message />
               </Avatar>
             }

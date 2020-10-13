@@ -2,4 +2,6 @@ export const config = {
   LOGIN_LENGTH: 10,
   PASSWORD_MIN_LENGTH: 4,
   SERVER_URL: 'http://localhost:8001/',
+  NUMBER_OF_FETCHED_MESSAGES: 5,
+  NUMBER_OF_FETCHED_THREADS: 10,
 };
