@@ -2,10 +2,7 @@ import React, { Component } from 'react';
 import { Card } from '@material-ui/core';
 import boolEnum from '../../../enums/bool.enum';
 import ThreadItem from '../ThreadItem/ThreadItem';
-import {
-  requestService,
-  parseAxiosResponse,
-} from '../../../helpers/request.helper';
+import { requestService, parseAxiosResponse } from '../../../helpers/request.helper';
 import { config } from '../../../config';
 
 class ThreadList extends Component {
@@ -24,9 +21,7 @@ class ThreadList extends Component {
     };
 
     try {
-      const response = parseAxiosResponse(
-        await requestService('getthreads', params)
-      );
+      const response = parseAxiosResponse(await requestService('getthreads', params));
 
       this.setState({ threads: this.parseResponse(response) });
     } catch (error) {}
@@ -40,7 +35,7 @@ class ThreadList extends Component {
           date: date,
           loading: false,
           messageNumber: nummess,
-          messageContent: [],
+          messageContent: { messages: [], total: null },
           read: read === boolEnum.TRUE,
           ref,
           selected: false,
@@ -52,13 +47,17 @@ class ThreadList extends Component {
     );
   };
 
-  handleThreadSelection = (ref) => {
+  parseMessageResponse = (response) => {
+    return;
+  };
+
+  handleThreadSelection = (ref, params) => {
     const selectedThread = this.state.threads.find(({ selected }) => selected);
 
-    if (selectedThread && selectedThread.ref === ref) {
+    if (!params && selectedThread && selectedThread.ref === ref) {
       return this.deselectThreads();
     }
-    this.selectThread(ref);
+    this.selectThread(ref, params);
   };
 
   deselectThreads = () => {
@@ -71,41 +70,58 @@ class ThreadList extends Component {
     });
   };
 
-  selectThread = (ref) => {
+  selectThread = (ref, params) => {
+    if (this.hasFullMessageContent(ref)) {
+      return this.setState({
+        threads: this.state.threads.map((thread) => {
+          return { ...thread, selected: thread.ref === ref };
+        }),
+      });
+    }
+
     this.setState(
       {
         threads: this.state.threads.map((thread) => {
           return { ...thread, loading: thread.ref === ref };
         }),
       },
-      () => this.fetchMessageData(ref)
+      () => this.fetchMessageData(ref, params)
     );
   };
 
-  fetchMessageData = async (ref) => {
-    const params = {
+  hasFullMessageContent = (ref) => {
+    const { messageContent } = this.state.threads.find((thread) => thread.ref === ref);
+    return messageContent.messages.length === messageContent.total;
+  };
+
+  fetchMessageData = async (ref, params) => {
+    const defaultParams = {
       ref,
       num: config.NUMBER_OF_FETCHED_MESSAGES,
       skip: 0,
     };
+
+    const actualParams = { ...defaultParams, ...params };
+
     try {
-      const response = parseAxiosResponse(
-        await requestService('getmessages', params)
-      );
-      this.onSuccessfulMessageFetch(response.data.messages, ref);
+      const response = parseAxiosResponse(await requestService('getmessages', actualParams));
+      this.onSuccessfulMessageFetch(response.data, ref);
     } catch (error) {
       console.log(error);
     }
   };
 
-  onSuccessfulMessageFetch = (messages, ref) => {
+  onSuccessfulMessageFetch = ({ messages, total }, ref) => {
     this.setState({
       threads: this.state.threads.map((thread) => {
         return {
           ...thread,
           selected: thread.ref === ref,
           loading: false,
-          messageContent: thread.ref === ref ? messages : thread.messageContent,
+          messageContent:
+            thread.ref === ref
+              ? { messages: [...thread.messageContent.messages, ...messages], total }
+              : thread.messageContent,
         };
       }),
     });
@@ -116,11 +132,7 @@ class ThreadList extends Component {
 
     const threadList = threads.length ? (
       threads.map((thread) => (
-        <ThreadItem
-          thread={thread}
-          key={thread.ref}
-          select={this.handleThreadSelection}
-        />
+        <ThreadItem thread={thread} key={thread.ref} select={this.handleThreadSelection} />
       ))
     ) : (
       <div> masz zsero wiadomosci</div>
