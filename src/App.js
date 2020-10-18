@@ -11,9 +11,11 @@ export class App extends Component {
     showLoader: false,
   };
 
-  toggleFullscreenLoader = () => {
+  toggleFullscreenLoader = (options) => {
+    const showLoader = options ? options.showLoader : !this.state.showLoader;
+    console.log(showLoader);
     this.setState({
-      showLoader: !this.state.showLoader,
+      showLoader,
     });
   };
 
@@ -25,18 +27,12 @@ export class App extends Component {
           <Switch>
             <Route
               exact
-              path="/df"
-              render={() => (
-                <LoginForm showFullscreenLoader={this.toggleFullscreenLoader} />
-              )}
+              path="/s" // switch to "/" to start with login screen
+              render={() => <LoginForm showFullscreenLoader={this.toggleFullscreenLoader} />}
             />
             <Route
               path="/"
-              render={() => (
-                <MessagesMain
-                  showFullscreenLoader={this.toggleFullscreenLoader}
-                />
-              )}
+              render={() => <MessagesMain toggleFullscreenLoader={this.toggleFullscreenLoader} />}
             />
           </Switch>
         </Router>
