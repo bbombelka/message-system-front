@@ -1,17 +1,11 @@
 import React, { Fragment } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Avatar,
-  Button,
-  CircularProgress,
-  Collapse,
-  Divider,
-  Paper,
-  Typography,
-} from '@material-ui/core';
+import { Avatar, Button, CircularProgress, Collapse, Divider } from '@material-ui/core';
+import { Paper, Typography } from '@material-ui/core';
 import { ExpandMore as ExpandMoreIcon } from '@material-ui/icons';
-import ThreadIcon from '../ThreadIcon/ThreadIcon';
+import Icon from '../Icon/Icon';
 import MessageItem from '../MessageItem/MessageItem';
+import { config } from '../../../config';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -76,6 +70,14 @@ const ThreadItem = (props) => {
   const chevronClassName = classes.chevron.concat(selected ? ` ${classes.chevronSelected}` : '');
   const titleClassName = classes.flexAlignCenter.concat(loading ? ` ${classes.loading}` : '');
 
+  const onLoadMoreButtonClick = () => {
+    const params = {
+      num: config.NUMBER_OF_FETCHED_MESSAGES,
+      skip: messageContent.messages.length,
+    };
+    select(ref, params);
+  };
+
   return (
     <div>
       <div onClick={() => select(ref)} className={classes.bar}>
@@ -86,7 +88,7 @@ const ThreadItem = (props) => {
               colorDefault: classes.avatarColor,
             }}
           >
-            <ThreadIcon type={type} />
+            <Icon type={type} />
           </Avatar>
         </div>
         <div className={titleClassName}>
@@ -115,11 +117,11 @@ const ThreadItem = (props) => {
             {shouldDisplayLoadMoreButton && (
               <div className={classes.flexAlignCenter}>
                 <Button
-                  onClick={() => select(ref, { num: 5, skip: messageContent.messages.length })}
+                  onClick={() => onLoadMoreButtonClick()}
                   classes={{ root: classes.loadMoreButton }}
                   variant="outlined"
                 >
-                  Wczytaj więcej
+                  Load more
                 </Button>
               </div>
             )}

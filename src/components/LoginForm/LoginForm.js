@@ -1,18 +1,7 @@
 import axios from 'axios';
-import {
-  Avatar,
-  Button,
-  Card,
-  CardHeader,
-  CircularProgress,
-  Container,
-  IconButton,
-  OutlinedInput,
-  InputAdornment,
-  InputLabel,
-  FormControl,
-  TextField,
-} from '@material-ui/core';
+import { Avatar, Button, Card, CardHeader } from '@material-ui/core';
+import { CircularProgress, Container, IconButton, OutlinedInput } from '@material-ui/core';
+import { InputAdornment, InputLabel, FormControl, TextField } from '@material-ui/core';
 import { config } from '../../../config';
 import copyEnum from '../../../enums/copy.enum';
 import Notification from '../Notification/Notification';
@@ -21,12 +10,7 @@ import React, { Component } from 'react';
 import regexEnum from '../../../enums/regex.enum';
 import { withRouter } from 'react-router';
 import { withStyles } from '@material-ui/core/styles';
-import {
-  Message,
-  Visibility,
-  VisibilityOff,
-  VpnKey,
-} from '@material-ui/icons/';
+import { Message, Visibility, VisibilityOff, VpnKey } from '@material-ui/icons/';
 import './styles.css';
 
 class LoginFormComponent extends Component {
@@ -109,8 +93,7 @@ class LoginFormComponent extends Component {
   validatePassword = () => {
     const { passwordTextFieldValue } = this.state;
     this.setState({
-      loginButtonIsDisabled:
-        passwordTextFieldValue.length <= config.PASSWORD_MIN_LENGTH,
+      loginButtonIsDisabled: passwordTextFieldValue.length <= config.PASSWORD_MIN_LENGTH,
     });
   };
 
@@ -170,9 +153,7 @@ class LoginFormComponent extends Component {
   };
 
   persistWebTokens = (tokens) => {
-    Object.entries(tokens).forEach(([key, value]) =>
-      localStorage.setItem(key, value)
-    );
+    Object.entries(tokens).forEach(([key, value]) => localStorage.setItem(key, value));
   };
 
   proceedToMessages = () => {
@@ -182,8 +163,7 @@ class LoginFormComponent extends Component {
 
   onErrorResponse = (error) => {
     const errorResponse = (error.response && error.response.data) || {};
-    const requestNotificationMessage =
-      errorResponse.msg || errorsEnum.GENERIC_LOGIN_ERROR;
+    const requestNotificationMessage = errorResponse.msg || errorsEnum.GENERIC_LOGIN_ERROR;
 
     this.showNotification(
       {

@@ -3,4 +3,5 @@ export default {
   WARNING: 'W',
   CHAT: 'C',
   SIGNATURE: 'S',
+  ERROR: 'E',
 };

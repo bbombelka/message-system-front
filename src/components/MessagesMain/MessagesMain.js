@@ -1,10 +1,10 @@
 import React from 'react';
 import ThreadList from '../ThreadList/ThreadList';
 
-const MessagesMain = (props) => {
+const MessagesMain = ({ toggleFullscreenLoader }) => {
   return (
     <div>
-      <ThreadList />
+      <ThreadList toggleFullscreenLoader={toggleFullscreenLoader} />
     </div>
   );
 };

@@ -4,14 +4,18 @@ import boolEnum from '../../../enums/bool.enum';
 import ThreadItem from '../ThreadItem/ThreadItem';
 import { requestService, parseAxiosResponse } from '../../../helpers/request.helper';
 import { config } from '../../../config';
+import CustomNotification from '../CustomNotification/CustomNotification';
+import errorsEnum from '../../../enums/errors.enum';
+import iconEnum from '../Icon/Icon.enum';
 
 class ThreadList extends Component {
   state = {
     threads: [],
+    hasFetchError: false,
   };
 
   componentDidMount() {
-    this.fetchThreadData();
+    this.setState({ loading: true }, () => this.fetchThreadData());
   }
 
   fetchThreadData = async () => {
@@ -22,9 +26,43 @@ class ThreadList extends Component {
 
     try {
       const response = parseAxiosResponse(await requestService('getthreads', params));
+      this.onSuccessfulThreadFetch(response);
+    } catch (error) {
+      this.onFailedThreadFetch();
+    }
+  };
 
-      this.setState({ threads: this.parseResponse(response) });
-    } catch (error) {}
+  onSuccessfulThreadFetch = (response) => {
+    this.setState({ threads: this.parseResponse(response), loading: false }, () =>
+      this.props.toggleFullscreenLoader({ showLoader: false })
+    );
+  };
+
+  onFailedThreadFetch = () => {
+    this.setState(
+      {
+        hasFetchError: true,
+        fetchErrorMessage: errorsEnum.GENERIC_REQ_ERROR,
+        errorLinkMessage: errorsEnum.GENERIC_LINK_TRY_AGAIN,
+        errorNotificationCallback: () => this.onNotificationClose(),
+        loading: false,
+      },
+      () => this.props.toggleFullscreenLoader({ showLoader: false }) // uncomment on combining with login form :-)
+    );
+  };
+
+  onNotificationClose = () => {
+    this.props.toggleFullscreenLoader({ showLoader: true });
+    this.setState(
+      {
+        loading: true,
+        hasFetchError: false,
+        fetchErrorMessage: null,
+        errorLinkMessage: null,
+        errorNotificationCallback: null,
+      },
+      () => this.fetchThreadData()
+    );
   };
 
   parseResponse = (response) => {
@@ -71,7 +109,7 @@ class ThreadList extends Component {
   };
 
   selectThread = (ref, params) => {
-    if (this.hasFullMessageContent(ref)) {
+    if (this.hasMessageContent(ref) && !params) {
       return this.setState({
         threads: this.state.threads.map((thread) => {
           return { ...thread, selected: thread.ref === ref };
@@ -89,9 +127,9 @@ class ThreadList extends Component {
     );
   };
 
-  hasFullMessageContent = (ref) => {
+  hasMessageContent = (ref) => {
     const { messageContent } = this.state.threads.find((thread) => thread.ref === ref);
-    return messageContent.messages.length === messageContent.total;
+    return messageContent.messages.length !== 0;
   };
 
   fetchMessageData = async (ref, params) => {
@@ -128,17 +166,38 @@ class ThreadList extends Component {
   };
 
   render() {
-    const { threads } = this.state;
+    const {
+      errorLinkMessage,
+      errorNotificationCallback,
+      fetchErrorMessage,
+      hasFetchError,
+      loading,
+      threads,
+    } = this.state;
 
     const threadList = threads.length ? (
       threads.map((thread) => (
         <ThreadItem thread={thread} key={thread.ref} select={this.handleThreadSelection} />
       ))
     ) : (
-      <div> masz zsero wiadomosci</div>
+      <CustomNotification
+        linkCallback={() => console.log('log out man')} //could place common callbacks in separate module
+        linkMessage={'Log out.'}
+        message={'You have no messages'}
+        type={iconEnum.INFO}
+      />
     );
 
-    return <Card>{threadList}</Card>;
+    return hasFetchError ? (
+      <CustomNotification
+        linkCallback={() => errorNotificationCallback()}
+        linkMessage={errorLinkMessage}
+        message={fetchErrorMessage}
+        type={iconEnum.ERROR}
+      />
+    ) : (
+      <Card>{!loading && threadList}</Card>
+    );
   }
 }
 
