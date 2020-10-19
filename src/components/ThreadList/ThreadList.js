@@ -85,17 +85,13 @@ class ThreadList extends Component {
     );
   };
 
-  parseMessageResponse = (response) => {
-    return;
-  };
-
-  handleThreadSelection = (ref, params) => {
+  handleThreadSelection = (ref) => {
     const selectedThread = this.state.threads.find(({ selected }) => selected);
 
-    if (!params && selectedThread && selectedThread.ref === ref) {
+    if (selectedThread && selectedThread.ref === ref) {
       return this.deselectThreads();
     }
-    this.selectThread(ref, params);
+    this.selectThread(ref);
   };
 
   deselectThreads = () => {
@@ -108,59 +104,10 @@ class ThreadList extends Component {
     });
   };
 
-  selectThread = (ref, params) => {
-    if (this.hasMessageContent(ref) && !params) {
-      return this.setState({
-        threads: this.state.threads.map((thread) => {
-          return { ...thread, selected: thread.ref === ref };
-        }),
-      });
-    }
-
-    this.setState(
-      {
-        threads: this.state.threads.map((thread) => {
-          return { ...thread, loading: thread.ref === ref };
-        }),
-      },
-      () => this.fetchMessageData(ref, params)
-    );
-  };
-
-  hasMessageContent = (ref) => {
-    const { messageContent } = this.state.threads.find((thread) => thread.ref === ref);
-    return messageContent.messages.length !== 0;
-  };
-
-  fetchMessageData = async (ref, params) => {
-    const defaultParams = {
-      ref,
-      num: config.NUMBER_OF_FETCHED_MESSAGES,
-      skip: 0,
-    };
-
-    const actualParams = { ...defaultParams, ...params };
-
-    try {
-      const response = parseAxiosResponse(await requestService('getmessages', actualParams));
-      this.onSuccessfulMessageFetch(response.data, ref);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  onSuccessfulMessageFetch = ({ messages, total }, ref) => {
+  selectThread = (ref) => {
     this.setState({
       threads: this.state.threads.map((thread) => {
-        return {
-          ...thread,
-          selected: thread.ref === ref,
-          loading: false,
-          messageContent:
-            thread.ref === ref
-              ? { messages: [...thread.messageContent.messages, ...messages], total }
-              : thread.messageContent,
-        };
+        return { ...thread, selected: thread.ref === ref };
       }),
     });
   };

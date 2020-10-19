@@ -8,6 +8,8 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    margin: '16px',
+    backgroundColor: (props) => props.backgroundColor || 'beige',
   },
   body: {
     paddingRight: '24px',
@@ -26,7 +28,7 @@ const useStyles = makeStyles({
 
 const CustomNotification = (props) => {
   const { linkCallback, linkMessage, message, type } = props;
-  const classes = useStyles();
+  const classes = useStyles(props);
 
   return (
     <Card className={classes.root}>

@@ -22,3 +22,9 @@ export const requestService = (service, requestParams) => {
 };
 
 export const parseAxiosResponse = (response) => response.data;
+
+export const parseErrorResponse = (error) => {
+  if (error && error.response && error.response.data) {
+    return error.response.data.msg;
+  }
+};
