@@ -13,7 +13,6 @@ export class App extends Component {
 
   toggleFullscreenLoader = (options) => {
     const showLoader = options ? options.showLoader : !this.state.showLoader;
-    console.log(showLoader);
     this.setState({
       showLoader,
     });

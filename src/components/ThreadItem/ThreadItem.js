@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Avatar, Button, CircularProgress, Collapse, Divider } from '@material-ui/core';
 import { Paper, Typography } from '@material-ui/core';
@@ -6,6 +6,13 @@ import { ExpandMore as ExpandMoreIcon } from '@material-ui/icons';
 import Icon from '../Icon/Icon';
 import MessageItem from '../MessageItem/MessageItem';
 import { config } from '../../../config';
+import {
+  requestService,
+  parseAxiosResponse,
+  parseErrorResponse,
+} from '../../../helpers/request.helper';
+import CustomNotification from '../CustomNotification/CustomNotification';
+import iconEnum from '../Icon/Icon.enum';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -59,14 +66,24 @@ const useStyles = makeStyles(() => ({
   loadMoreButton: {
     margin: '12px',
     color: 'rgba(100, 0, 0, 0.87)',
+    position: 'relative',
+  },
+  buttonLoader: {
+    position: 'absolute',
+    top: '20%',
   },
 }));
 
 const ThreadItem = (props) => {
-  const { loading, messageContent, ref, title, messageNumber, type, selected } = props.thread;
+  const { messageNumber, ref, selected, title, type } = props.thread;
   const { select } = props;
-  const shouldDisplayLoadMoreButton = messageContent.messages.length < messageContent.total;
+  const [loading, setLoading] = useState(false);
+  const [messageContent, setMessageContent] = useState({ messages: [], total: null });
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
   const classes = useStyles();
+
+  const shouldDisplayLoadMoreButton = messageContent.messages.length < messageContent.total;
   const chevronClassName = classes.chevron.concat(selected ? ` ${classes.chevronSelected}` : '');
   const titleClassName = classes.flexAlignCenter.concat(loading ? ` ${classes.loading}` : '');
 
@@ -75,12 +92,80 @@ const ThreadItem = (props) => {
       num: config.NUMBER_OF_FETCHED_MESSAGES,
       skip: messageContent.messages.length,
     };
-    select(ref, params);
+
+    fetchMoreMessages(params);
+  };
+
+  const fetchMoreMessages = async (params) => {
+    try {
+      setLoadingMore(true);
+      const response = parseAxiosResponse(await requestService('getmessages', params));
+      onSuccessfulLoadMoreMessagesFetch(response.data);
+    } catch (error) {
+      const message = parseErrorResponse(error);
+      onFailedMoreMessageFetch(message);
+    }
+  };
+
+  const onFailedMoreMessageFetch = (message) => {
+    setFetchError({
+      message,
+      linkMessage: 'Try again.',
+      callback: () => fetchErrorCallback(),
+    });
+    setLoadingMore(false);
+  };
+
+  const fetchMessages = async () => {
+    const params = {
+      ref,
+      num: config.NUMBER_OF_FETCHED_MESSAGES,
+      skip: 0,
+    };
+
+    try {
+      setLoading(true);
+      const response = parseAxiosResponse(await requestService('getmessages', params));
+      onSuccessfulMessageFetch(response.data);
+    } catch (error) {
+      const message = parseErrorResponse(error);
+      onFailedFetch(message);
+    }
+  };
+  const onFailedFetch = (message) => {
+    setFetchError({
+      message,
+      linkMessage: 'Try again.',
+      callback: () => fetchErrorCallback(),
+    });
+    setLoading(false);
+    select(ref);
+  };
+
+  const fetchErrorCallback = () => {
+    select(ref);
+    setFetchError(null);
+    fetchMessages();
+  };
+
+  const onSuccessfulMessageFetch = (data) => {
+    setMessageContent(data);
+    setLoading(false);
+    select(ref);
+  };
+
+  const onSuccessfulLoadMoreMessagesFetch = ({ messages }) => {
+    messageContent.messages.push(...messages);
+    setLoadingMore(false);
+  };
+
+  const onThreadBarClick = () => {
+    selected ? select(ref) : fetchMessages();
   };
 
   return (
     <div>
-      <div onClick={() => select(ref)} className={classes.bar}>
+      <div onClick={() => onThreadBarClick()} className={classes.bar}>
         <div className={classes.icon}>
           <Avatar
             classes={{
@@ -108,7 +193,7 @@ const ThreadItem = (props) => {
             {messageContent.messages.map((message, index) => {
               const isLast = messageContent.length - 1 === index;
               return (
-                <Fragment>
+                <Fragment key={index}>
                   <MessageItem message={message} key={message.ref} />
                   {!isLast && <Divider variant="middle" key={index} />}
                 </Fragment>
@@ -120,10 +205,21 @@ const ThreadItem = (props) => {
                   onClick={() => onLoadMoreButtonClick()}
                   classes={{ root: classes.loadMoreButton }}
                   variant="outlined"
+                  disabled={Boolean(fetchError)}
                 >
+                  {loadingMore && <CircularProgress className={classes.buttonLoader} size={24} />}
                   Load more
                 </Button>
               </div>
+            )}
+            {fetchError && (
+              <CustomNotification
+                backgroundColor={'white'}
+                linkCallback={fetchError.callback}
+                linkMessage={fetchError.linkMessage}
+                message={fetchError.message}
+                type={iconEnum.ERROR}
+              />
             )}
           </Paper>
         </Collapse>
