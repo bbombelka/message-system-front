@@ -104,12 +104,19 @@ class ThreadList extends Component {
     });
   };
 
-  selectThread = (ref) => {
+  selectThread = (ref, options = {}) => {
     this.setState({
       threads: this.state.threads.map((thread) => {
-        return { ...thread, selected: thread.ref === ref };
+        const selected = thread.ref === ref;
+        const threadProps = selected ? options : {};
+        return { ...thread, ...threadProps, selected };
       }),
     });
+  };
+
+  markAsRead = (ref) => {
+    const options = { read: true };
+    this.selectThread(ref, options);
   };
 
   render() {
@@ -124,7 +131,12 @@ class ThreadList extends Component {
 
     const threadList = threads.length ? (
       threads.map((thread) => (
-        <ThreadItem thread={thread} key={thread.ref} select={this.handleThreadSelection} />
+        <ThreadItem
+          thread={thread}
+          key={thread.ref}
+          select={this.handleThreadSelection}
+          markAsRead={this.markAsRead}
+        />
       ))
     ) : (
       <CustomNotification
@@ -141,6 +153,7 @@ class ThreadList extends Component {
         linkMessage={errorLinkMessage}
         message={fetchErrorMessage}
         type={iconEnum.ERROR}
+        backgroundColor={'white'}
       />
     ) : (
       <Card>{!loading && threadList}</Card>
