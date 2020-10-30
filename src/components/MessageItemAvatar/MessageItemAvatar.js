@@ -20,13 +20,11 @@ const MessageItemAvatar = (props) => {
   const { date, processed, type } = props;
   const time = new Date(date).toLocaleTimeString().slice(0, 5);
   const localeDate = new Date(date).toLocaleDateString();
-  const processedStatus = processed
-    ? 'W trakcie rozpatrywania'
-    : 'Oczekuje na rozpatrzenie';
+  const processedStatus = processed ? 'Read by consultant' : 'Awaiting consideration';
   const classes = useStyles();
 
   const avatarIcon =
-    type === messageTypeEnum.INTERNAL ? (
+    processed === undefined ? (
       <ContactMailOutlined className={classes.icon} />
     ) : (
       <PersonOutline className={classes.icon} />
@@ -43,9 +41,9 @@ const MessageItemAvatar = (props) => {
           {localeDate}
         </Typography>
       </div>
-      {type === messageTypeEnum.OUTER && (
+      {processed !== undefined && (
         <Typography align="center" variant="subtitle2">
-          {processedStatus}
+          Current status: {processedStatus}
         </Typography>
       )}
     </div>
