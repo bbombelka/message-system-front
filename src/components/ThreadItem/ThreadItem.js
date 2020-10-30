@@ -112,7 +112,7 @@ const ThreadItem = (props) => {
       return {
         ...message,
         read: message.read === bool.TRUE,
-        processed: message.processed === bool.TRUE,
+        attachments: message.attach,
       };
     });
 
