@@ -38,9 +38,18 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const ThreadItem = (props) => {
-  const { messageNumber, read, ref, selected, title, type, unreadMessageNumber } = props.thread;
-  const { select, markAsRead } = props;
+const ThreadItem = React.forwardRef((props, ref) => {
+  //change to class component
+  const { marked, messageNumber, read, selected, title, type, unreadMessageNumber } = props.thread;
+  const reference = props.thread.ref;
+  const {
+    giveMarkedMessages,
+    select,
+    markAsRead,
+    messageMarkMode,
+    threadMarkMode,
+    toggleMark,
+  } = props;
   const [loading, setLoading] = useState(false);
   const [messageContent, setMessageContent] = useState({ messages: [], total: null });
   const [loadingMore, setLoadingMore] = useState(false);
@@ -50,12 +59,12 @@ const ThreadItem = (props) => {
   const shouldDisplayLoadMoreButton = messageContent.messages.length < messageContent.total;
 
   useEffect(() => {
-    messageContent.total && (!loading || !loadingMore) && !read && handleReadStatus();
+    messageContent.total && (!loading || !loadingMore) && !read && handleReadStatus(); //hooks rulez
   }, [loading, loadingMore]);
 
   const onLoadMoreButtonClick = () => {
     const params = {
-      ref,
+      ref: reference,
       num: config.NUMBER_OF_FETCHED_MESSAGES,
       skip: messageContent.messages.length,
     };
@@ -85,7 +94,7 @@ const ThreadItem = (props) => {
 
   const fetchMessages = async () => {
     const params = {
-      ref,
+      ref: reference,
       num: config.NUMBER_OF_FETCHED_MESSAGES,
       skip: 0,
     };
@@ -104,7 +113,7 @@ const ThreadItem = (props) => {
     const parsedMessageContent = parseResponse(data);
     setMessageContent(parsedMessageContent);
     setLoading(false);
-    select(ref);
+    select(reference);
   };
 
   const parseResponse = (data) => {
@@ -113,6 +122,7 @@ const ThreadItem = (props) => {
         ...message,
         read: message.read === bool.TRUE,
         attachments: message.attach,
+        marked: false,
       };
     });
 
@@ -123,7 +133,7 @@ const ThreadItem = (props) => {
     const receivedNumberOfUnreadMessages = messageContent.messages.filter(
       (message) => !message.read
     ).length;
-    receivedNumberOfUnreadMessages === unreadMessageNumber && markAsRead(ref);
+    receivedNumberOfUnreadMessages === unreadMessageNumber && markAsRead(reference);
   };
 
   const onFailedFetch = (message) => {
@@ -133,11 +143,11 @@ const ThreadItem = (props) => {
       callback: () => fetchErrorCallback(),
     });
     setLoading(false);
-    select(ref);
+    select(reference);
   };
 
   const fetchErrorCallback = () => {
-    select(ref);
+    select(reference);
     setFetchError(null);
     fetchMessages();
   };
@@ -148,6 +158,7 @@ const ThreadItem = (props) => {
         ...message,
         read: message.read === bool.TRUE,
         processed: message.processed === bool.TRUE,
+        marked: false,
       };
     });
 
@@ -156,18 +167,35 @@ const ThreadItem = (props) => {
   };
 
   const onThreadBarClick = () => {
-    selected ? select(ref) : fetchMessages();
+    selected ? select(reference) : fetchMessages();
+  };
+
+  const toggleMessageMarkStatus = (ref, bool) => {
+    const updatedMessages = messageContent.messages.map((message) => {
+      const marked = message.ref === ref ? bool : message.marked;
+      return {
+        ...message,
+        marked,
+      };
+    });
+    giveMarkedMessages(updatedMessages);
+    setMessageContent({ messages: updatedMessages, total: messageContent.total });
   };
 
   return (
     <div>
       <ThreadBar
         loading={loading}
+        marked={marked}
+        messageMarkMode={messageMarkMode}
+        threadMarkMode={threadMarkMode}
         messageNumber={messageNumber}
         onThreadBarClick={onThreadBarClick}
         read={read}
+        reference={reference}
         selected={selected}
         title={title}
+        toggleMark={toggleMark}
         type={type}
       />
       <div className={classes.message}>
@@ -177,7 +205,12 @@ const ThreadItem = (props) => {
               const isLast = messageContent.length - 1 === index;
               return (
                 <Fragment key={index}>
-                  <MessageItem message={message} key={message.ref} />
+                  <MessageItem
+                    message={message}
+                    key={message.ref}
+                    toggleMarkStatus={toggleMessageMarkStatus}
+                    markMode={messageMarkMode}
+                  />
                   {!isLast && <Divider variant="middle" key={index} />}
                 </Fragment>
               );
@@ -210,6 +243,6 @@ const ThreadItem = (props) => {
       <Divider variant="middle" />
     </div>
   );
-};
+});
 
 export default ThreadItem;

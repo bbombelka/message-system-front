@@ -20,22 +20,22 @@ export class App extends Component {
 
   render() {
     return (
-      <Container maxWidth="md">
-        <Router>
-          <LoaderFullscreen open={this.state.showLoader} />
-          <Switch>
-            <Route
-              exact
-              path="/s" // switch to "/" to start with login screen
-              render={() => <LoginForm showFullscreenLoader={this.toggleFullscreenLoader} />}
-            />
-            <Route
-              path="/"
-              render={() => <MessagesMain toggleFullscreenLoader={this.toggleFullscreenLoader} />}
-            />
-          </Switch>
-        </Router>
-      </Container>
+      // <Container maxWidth="md">
+      <Router>
+        <LoaderFullscreen open={this.state.showLoader} />
+        <Switch>
+          <Route
+            exact
+            path="/s" // switch to "/" to start with login screen
+            render={() => <LoginForm showFullscreenLoader={this.toggleFullscreenLoader} />}
+          />
+          <Route
+            path="/"
+            render={() => <MessagesMain toggleFullscreenLoader={this.toggleFullscreenLoader} />}
+          />
+        </Switch>
+      </Router>
+      // </Container>
     );
   }
 }

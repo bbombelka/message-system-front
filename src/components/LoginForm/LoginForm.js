@@ -217,6 +217,8 @@ class LoginFormComponent extends Component {
 
     return (
       <Container maxWidth="sm">
+        {' '}
+        //poziom wyżej comtainer z maxWidth md
         <Card>
           <CardHeader
             title="Welcome to Message System"

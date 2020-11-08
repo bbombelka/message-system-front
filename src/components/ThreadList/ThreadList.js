@@ -72,8 +72,8 @@ class ThreadList extends Component {
           canBeDeleted: cd === boolEnum.TRUE,
           date: date,
           loading: false,
+          marked: false,
           messageNumber: nummess,
-          messageContent: { messages: [], total: null },
           read: read === boolEnum.TRUE,
           ref,
           selected: false,
@@ -99,19 +99,48 @@ class ThreadList extends Component {
       return { ...thread, selected: false };
     });
 
-    this.setState({
-      threads: deselectedThreads,
-    });
+    this.setState(
+      {
+        threads: deselectedThreads,
+      },
+      () => this.props.toggleToolbar(false)
+    );
   };
 
   selectThread = (ref, options = {}) => {
+    this.setState(
+      {
+        threads: this.state.threads.map((thread) => {
+          const selected = thread.ref === ref;
+          const threadProps = selected ? options : {};
+          return { ...thread, ...threadProps, selected };
+        }),
+      },
+      () => this.props.toggleToolbar(true)
+    );
+  };
+
+  toggleMarkThread = (ref, bool, options = {}) => {
+    const isBulkMarkMode = options.hasOwnProperty('mark');
+    const { mark } = options;
+
     this.setState({
       threads: this.state.threads.map((thread) => {
-        const selected = thread.ref === ref;
-        const threadProps = selected ? options : {};
-        return { ...thread, ...threadProps, selected };
+        const marked = isBulkMarkMode
+          ? mark
+            ? true
+            : false
+          : thread.ref === ref
+          ? bool
+          : thread.marked;
+
+        return { ...thread, marked };
       }),
     });
+  };
+
+  getMarkedMessages = (messages) => {
+    this.setState({ markedMessages: messages });
   };
 
   markAsRead = (ref) => {
@@ -129,13 +158,20 @@ class ThreadList extends Component {
       threads,
     } = this.state;
 
+    this.ref = React.createRef();
+    console.log(this.ref);
     const threadList = threads.length ? (
       threads.map((thread) => (
         <ThreadItem
+          ref={this.ref}
           thread={thread}
           key={thread.ref}
           select={this.handleThreadSelection}
           markAsRead={this.markAsRead}
+          giveMarkedMessages={this.getMarkedMessages}
+          threadMarkMode={this.props.threadMarkMode}
+          messageMarkMode={this.props.messageMarkMode}
+          toggleMark={this.toggleMarkThread}
         />
       ))
     ) : (
