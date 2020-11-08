@@ -14,13 +14,22 @@ const useStyles = makeStyles({
 });
 
 const MessageItem = (props) => {
-  const { attachments = [], date, processed, ref, text, type } = props.message;
+  const { attachments = [], date, marked, processed, ref, text, type } = props.message;
+  const { markMode, toggleMarkStatus } = props;
   const classes = useStyles();
 
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <MessageItemAvatar date={date} type={type} processed={processed} />
+        <MessageItemAvatar
+          date={date}
+          marked={marked}
+          markMode={markMode}
+          processed={processed}
+          reference={ref}
+          toggleMarkStatus={toggleMarkStatus}
+          type={type}
+        />
         <div>
           <Typography classes={{ root: classes.content }}>
             <span dangerouslySetInnerHTML={{ __html: text }}></span>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, CircularProgress, Typography } from '@material-ui/core';
+import { Avatar, Checkbox, CircularProgress, Typography } from '@material-ui/core';
 import { ExpandMore as ExpandMoreIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import Icon from '../Icon/Icon';
@@ -18,13 +18,18 @@ const useStyle = makeStyles({
     display: 'flex',
     alignItems: 'center',
     flexWrap: 'nowrap',
-    cursor: 'pointer',
+    cursor: ({ threadMarkMode, messageMarkMode }) =>
+      threadMarkMode || messageMarkMode ? 'not-allowed' : 'pointer',
     transition: 'all .2s',
     '& div': {
       padding: '12px',
     },
     '& div:nth-of-type(3)': {
       marginLeft: 'auto',
+    },
+    '& div:nth-of-type(4)': {
+      width: '42px',
+      color: 'rgba(100,0,0,0.87)',
     },
   },
   bold: {
@@ -49,16 +54,42 @@ const useStyle = makeStyles({
   loading: {
     opacity: '.5',
   },
+  checkBox: {
+    color: 'rgba(100,0,0,0.87)',
+    '& checked': {
+      color: 'rgba(100,0,0,0.87)',
+    },
+  },
+  checked: {},
 });
 
 const ThreadBar = (props) => {
-  const { loading, messageNumber, onThreadBarClick, read, selected, title, type } = props;
-  const classes = useStyle();
+  const {
+    loading,
+    marked,
+    messageMarkMode,
+    threadMarkMode,
+    messageNumber,
+    onThreadBarClick,
+    read,
+    reference,
+    selected,
+    title,
+    toggleMark,
+    type,
+  } = props;
+  const classes = useStyle(props);
   const chevronClassName = classes.chevron.concat(selected ? ` ${classes.chevronSelected}` : '');
   const titleClassName = classes.flexAlignCenter.concat(loading ? ` ${classes.loading}` : '');
 
+  const onClick = () => {
+    threadMarkMode || messageMarkMode
+      ? console.log('display info to disable mark mode first')
+      : onThreadBarClick();
+  };
+
   return (
-    <div onClick={() => onThreadBarClick()} className={classes.root}>
+    <div onClick={onClick} className={classes.root}>
       <div>
         <Avatar
           classes={{
@@ -76,7 +107,16 @@ const ThreadBar = (props) => {
         <Typography>{messageNumber}</Typography>
       </div>
       <div className={classes.flexAlignCenter}>
-        <ExpandMoreIcon className={chevronClassName} />
+        {threadMarkMode ? (
+          <Checkbox
+            color="default"
+            checked={marked}
+            onChange={() => toggleMark(reference, !marked)}
+            classes={{ root: classes.checkBox, checked: classes.checkBox }}
+          />
+        ) : (
+          <ExpandMoreIcon className={chevronClassName} />
+        )}
       </div>
       {loading && <CircularProgress size={24} className={classes.loader} />}
     </div>
