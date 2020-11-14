@@ -19,10 +19,11 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   const [messageMarkMode, setMessageMarkMode] = useState(false);
 
   const threads = useRef(null);
+  const messages = useRef(null);
   const isToolbarVertical = window.innerWidth > 1057;
   const markMode = threadMarkMode || messageMarkMode;
   // add resize listener
-  console.log(threads);
+
   useEffect(() => {
     const isThreadSelected = threads.current.state.threads.some((thread) => thread.selected);
     const setSource = () => {
@@ -45,16 +46,17 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   };
 
   const toggleMarkMode = (bool) => {
-    console.log(threads);
     setThreadMarkMode(bool);
   };
 
   const unMarkAll = (isMessage) => {
-    isMessage ? () => {} : threads.current.toggleMarkThread('', null, { mark: false });
+    const options = ['', null, { mark: false }];
+    isMessage ? messages.current.toggleMessageMarkStatus(...options) : threads.current.toggleMarkThread(...options);
   };
 
   const markAll = (isMessage) => {
-    isMessage ? () => {} : threads.current.toggleMarkThread('', null, { mark: true });
+    const options = ['', null, { mark: true }];
+    isMessage ? messages.current.toggleMessageMarkStatus(...options) : threads.current.toggleMarkThread(...options);
   };
 
   return (
@@ -77,6 +79,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
           toggleToolbar={toggleToolbar}
           threadMarkMode={threadMarkMode}
           messageMarkMode={messageMarkMode}
+          messageRef={messages}
         />
       </Container>
     </div>

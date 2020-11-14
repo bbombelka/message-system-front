@@ -18,6 +18,7 @@ const useStyles = makeStyles({
     position: 'fixed',
     padding: 0,
     transition: 'all .2s ease-out',
+    zIndex: 10,
   },
   button: {
     color: 'beige',
@@ -47,16 +48,7 @@ const useStyles = makeStyles({
 });
 
 const MessageToolbar = (props) => {
-  const {
-    displayed,
-    isMessage,
-    markAll,
-    markMode,
-    setMessageMarkMode,
-    setThreadMarkMode,
-    unMarkAll,
-    vertical,
-  } = props;
+  const { displayed, isMessage, markAll, markMode, setMessageMarkMode, setThreadMarkMode, unMarkAll, vertical } = props;
 
   const classes = useStyles({ markMode });
 
@@ -70,20 +62,13 @@ const MessageToolbar = (props) => {
     return toolbarClassName;
   };
 
-  // const markIconClass = classes.icon.concat(markMode ? ` ${classes.iconSelected}` : ``);
-
   const onMarkButtonClick = () => {
-    isMessage
-      ? setMessageMarkMode((prevVal) => !prevVal)
-      : setThreadMarkMode((prevVal) => !prevVal);
+    isMessage ? setMessageMarkMode((prevVal) => !prevVal) : setThreadMarkMode((prevVal) => !prevVal);
   };
 
   return (
     <Toolbar className={getToolbarClassName()}>
-      {!markMode && (
-        <IconButton className={classes.button}>{isMessage ? <Reply /> : <Create />}</IconButton>
-      )}
-
+      {!markMode && <IconButton className={classes.button}>{isMessage ? <Reply /> : <Create />}</IconButton>}
       <IconButton className={classes.button}>
         <Delete />
       </IconButton>
@@ -97,11 +82,7 @@ const MessageToolbar = (props) => {
           <Replay />
         </IconButton>
       )}
-      <IconButton
-        onClick={onMarkButtonClick}
-        classes={{ root: classes.icon }}
-        className={classes.button}
-      >
+      <IconButton onClick={onMarkButtonClick} classes={{ root: classes.icon }} className={classes.button}>
         <CheckBox />
       </IconButton>
       {markMode && (

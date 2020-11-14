@@ -66,23 +66,21 @@ class ThreadList extends Component {
   };
 
   parseResponse = (response) => {
-    return response.data.threads.map(
-      ({ ref, title, cd, date, nummess, unreadmess, type, read }) => {
-        return {
-          canBeDeleted: cd === boolEnum.TRUE,
-          date: date,
-          loading: false,
-          marked: false,
-          messageNumber: nummess,
-          read: read === boolEnum.TRUE,
-          ref,
-          selected: false,
-          title,
-          type,
-          unreadMessageNumber: unreadmess,
-        };
-      }
-    );
+    return response.data.threads.map(({ ref, title, cd, date, nummess, unreadmess, type, read }) => {
+      return {
+        canBeDeleted: cd === boolEnum.TRUE,
+        date: date,
+        loading: false,
+        marked: false,
+        messageNumber: nummess,
+        read: read === boolEnum.TRUE,
+        ref,
+        selected: false,
+        title,
+        type,
+        unreadMessageNumber: unreadmess,
+      };
+    });
   };
 
   handleThreadSelection = (ref) => {
@@ -99,12 +97,7 @@ class ThreadList extends Component {
       return { ...thread, selected: false };
     });
 
-    this.setState(
-      {
-        threads: deselectedThreads,
-      },
-      () => this.props.toggleToolbar(false)
-    );
+    this.setState({ threads: deselectedThreads }, () => this.props.toggleToolbar(false));
   };
 
   selectThread = (ref, options = {}) => {
@@ -126,21 +119,11 @@ class ThreadList extends Component {
 
     this.setState({
       threads: this.state.threads.map((thread) => {
-        const marked = isBulkMarkMode
-          ? mark
-            ? true
-            : false
-          : thread.ref === ref
-          ? bool
-          : thread.marked;
+        const marked = isBulkMarkMode ? (mark ? true : false) : thread.ref === ref ? bool : thread.marked;
 
         return { ...thread, marked };
       }),
     });
-  };
-
-  getMarkedMessages = (messages) => {
-    this.setState({ markedMessages: messages });
   };
 
   markAsRead = (ref) => {
@@ -158,19 +141,16 @@ class ThreadList extends Component {
       threads,
     } = this.state;
 
-    this.ref = React.createRef();
-    console.log(this.ref);
     const threadList = threads.length ? (
       threads.map((thread) => (
         <ThreadItem
-          ref={this.ref}
-          thread={thread}
           key={thread.ref}
-          select={this.handleThreadSelection}
           markAsRead={this.markAsRead}
-          giveMarkedMessages={this.getMarkedMessages}
-          threadMarkMode={this.props.threadMarkMode}
           messageMarkMode={this.props.messageMarkMode}
+          ref={thread.selected && this.props.messageRef}
+          select={this.handleThreadSelection}
+          thread={thread}
+          threadMarkMode={this.props.threadMarkMode}
           toggleMark={this.toggleMarkThread}
         />
       ))

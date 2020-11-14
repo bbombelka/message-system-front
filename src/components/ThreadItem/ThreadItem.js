@@ -1,20 +1,16 @@
-import React, { Fragment, useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React, { Fragment, Component } from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import { Button, CircularProgress, Collapse, Divider } from '@material-ui/core';
 import { Paper } from '@material-ui/core';
 import MessageItem from '../MessageItem/MessageItem';
 import ThreadBar from '../ThreadBar/ThreadBar';
 import { config } from '../../../config';
-import {
-  requestService,
-  parseAxiosResponse,
-  parseErrorResponse,
-} from '../../../helpers/request.helper';
+import { requestService, parseAxiosResponse, parseErrorResponse } from '../../../helpers/request.helper';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import iconEnum from '../Icon/Icon.enum';
 import bool from '../../../enums/bool.enum';
 
-const useStyles = makeStyles(() => ({
+const useStyles = () => ({
   expanderContent: {
     backgroundColor: 'beige',
     margin: '0 12px',
@@ -36,89 +32,67 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-}));
+});
 
-const ThreadItem = React.forwardRef((props, ref) => {
-  //change to class component
-  const { marked, messageNumber, read, selected, title, type, unreadMessageNumber } = props.thread;
-  const reference = props.thread.ref;
-  const {
-    giveMarkedMessages,
-    select,
-    markAsRead,
-    messageMarkMode,
-    threadMarkMode,
-    toggleMark,
-  } = props;
-  const [loading, setLoading] = useState(false);
-  const [messageContent, setMessageContent] = useState({ messages: [], total: null });
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [fetchError, setFetchError] = useState(null);
-  const classes = useStyles();
+class ThreadItem extends Component {
+  state = {
+    loading: false,
+    messageContent: { messages: [], total: null },
+    fetchError: null,
+    loadingMore: false,
+  };
 
-  const shouldDisplayLoadMoreButton = messageContent.messages.length < messageContent.total;
-
-  useEffect(() => {
-    messageContent.total && (!loading || !loadingMore) && !read && handleReadStatus(); //hooks rulez
-  }, [loading, loadingMore]);
-
-  const onLoadMoreButtonClick = () => {
+  fetchMessages = async () => {
+    const { ref } = this.props.thread;
     const params = {
-      ref: reference,
-      num: config.NUMBER_OF_FETCHED_MESSAGES,
-      skip: messageContent.messages.length,
-    };
-
-    fetchMoreMessages(params);
-  };
-
-  const fetchMoreMessages = async (params) => {
-    try {
-      setLoadingMore(true);
-      const response = parseAxiosResponse(await requestService('getmessages', params));
-      onSuccessfulLoadMoreMessagesFetch(response.data);
-    } catch (error) {
-      const message = parseErrorResponse(error);
-      onFailedMoreMessageFetch(message);
-    }
-  };
-
-  const onFailedMoreMessageFetch = (message) => {
-    setFetchError({
-      message,
-      linkMessage: 'Try again.',
-      callback: () => fetchErrorCallback(),
-    });
-    setLoadingMore(false);
-  };
-
-  const fetchMessages = async () => {
-    const params = {
-      ref: reference,
+      ref,
       num: config.NUMBER_OF_FETCHED_MESSAGES,
       skip: 0,
     };
 
     try {
-      setLoading(true);
+      this.setState({ loading: true });
       const response = parseAxiosResponse(await requestService('getmessages', params));
-      onSuccessfulMessageFetch(response.data);
+      this.onSuccessfulMessageFetch(response.data);
     } catch (error) {
       const message = parseErrorResponse(error);
-      onFailedFetch(message);
+      this.onFailedFetch(message);
     }
   };
 
-  const onSuccessfulMessageFetch = (data) => {
-    const parsedMessageContent = parseResponse(data);
-    setMessageContent(parsedMessageContent);
-    setLoading(false);
-    select(reference);
+  onSuccessfulMessageFetch = (data) => {
+    const { ref } = this.props.thread;
+    const parsedMessageContent = this.parseResponse(data);
+    this.setState(
+      { messageContent: parsedMessageContent, loading: false },
+      () => !this.props.thread.read && this.handleReadStatus()
+    );
+    this.props.select(ref);
   };
 
-  const parseResponse = (data) => {
+  onFailedFetch = (message) => {
+    const { ref } = this.props.thread;
+    this.setState(
+      {
+        fetchError: this.getFetchError(message),
+        loading: false,
+      },
+      () => this.props.select(ref)
+    );
+  };
+
+  getFetchError = (message) => {
+    return {
+      message,
+      linkMessage: 'Try again.',
+      callback: () => this.fetchErrorCallback(),
+    };
+  };
+
+  parseResponse = (data) => {
     const parsedMessages = data.messages.map((message) => {
       return {
+        //parsing taki sam
         ...message,
         read: message.read === bool.TRUE,
         attachments: message.attach,
@@ -129,30 +103,18 @@ const ThreadItem = React.forwardRef((props, ref) => {
     return { messages: parsedMessages, total: data.total };
   };
 
-  const handleReadStatus = () => {
-    const receivedNumberOfUnreadMessages = messageContent.messages.filter(
-      (message) => !message.read
-    ).length;
-    receivedNumberOfUnreadMessages === unreadMessageNumber && markAsRead(reference);
+  fetchMoreMessages = async (params) => {
+    try {
+      this.setState({ loadingMore: true });
+      const response = parseAxiosResponse(await requestService('getmessages', params));
+      this.onSuccessfulLoadMoreMessagesFetch(response.data);
+    } catch (error) {
+      const message = parseErrorResponse(error);
+      this.onFailedMoreMessageFetch(message);
+    }
   };
 
-  const onFailedFetch = (message) => {
-    setFetchError({
-      message,
-      linkMessage: 'Try again.',
-      callback: () => fetchErrorCallback(),
-    });
-    setLoading(false);
-    select(reference);
-  };
-
-  const fetchErrorCallback = () => {
-    select(reference);
-    setFetchError(null);
-    fetchMessages();
-  };
-
-  const onSuccessfulLoadMoreMessagesFetch = ({ messages }) => {
+  onSuccessfulLoadMoreMessagesFetch = ({ messages }) => {
     const parsedMessages = messages.map((message) => {
       return {
         ...message,
@@ -161,88 +123,154 @@ const ThreadItem = React.forwardRef((props, ref) => {
         marked: false,
       };
     });
-
-    messageContent.messages.push(...parsedMessages);
-    setLoadingMore(false);
+    this.setState(
+      {
+        messageContent: {
+          total: this.state.messageContent.total,
+          messages: [...this.state.messageContent.messages, ...parsedMessages],
+        },
+        loadingMore: false,
+      },
+      () => !this.props.thread.read && this.handleReadStatus()
+    );
   };
 
-  const onThreadBarClick = () => {
-    selected ? select(reference) : fetchMessages();
+  onFailedMoreMessageFetch = (message) => {
+    this.setState({
+      fetchError: this.getFetchError(message),
+      loadingMore: false,
+    });
   };
 
-  const toggleMessageMarkStatus = (ref, bool) => {
+  handleReadStatus = () => {
+    const { ref, unreadMessageNumber } = this.props.thread;
+    const { messages } = this.state.messageContent;
+    const receivedNumberOfUnreadMessages = messages.filter((message) => !message.read).length;
+    receivedNumberOfUnreadMessages === unreadMessageNumber && this.props.markAsRead(ref);
+  };
+
+  fetchErrorCallback = () => {
+    const { ref } = this.props.thread;
+    this.props.select(ref);
+    this.setState({ fetchError: null });
+    this.fetchMessages();
+  };
+
+  toggleMessageMarkStatus = (ref, bool, options = {}) => {
+    const isBulkMarkMode = options.hasOwnProperty('mark');
+    const { mark } = options;
+    const { messageContent } = this.state;
     const updatedMessages = messageContent.messages.map((message) => {
-      const marked = message.ref === ref ? bool : message.marked;
+      const marked = isBulkMarkMode ? (mark ? true : false) : message.ref === ref ? bool : message.marked;
       return {
         ...message,
         marked,
       };
     });
-    giveMarkedMessages(updatedMessages);
-    setMessageContent({ messages: updatedMessages, total: messageContent.total });
+    this.setState({
+      messageContent: { messages: updatedMessages, total: messageContent.total },
+    });
   };
 
-  return (
-    <div>
-      <ThreadBar
-        loading={loading}
-        marked={marked}
-        messageMarkMode={messageMarkMode}
-        threadMarkMode={threadMarkMode}
-        messageNumber={messageNumber}
-        onThreadBarClick={onThreadBarClick}
-        read={read}
-        reference={reference}
-        selected={selected}
-        title={title}
-        toggleMark={toggleMark}
-        type={type}
-      />
-      <div className={classes.message}>
-        <Collapse in={selected}>
-          <Paper className={classes.expanderContent}>
-            {messageContent.messages.map((message, index) => {
-              const isLast = messageContent.length - 1 === index;
-              return (
-                <Fragment key={index}>
-                  <MessageItem
-                    message={message}
-                    key={message.ref}
-                    toggleMarkStatus={toggleMessageMarkStatus}
-                    markMode={messageMarkMode}
-                  />
-                  {!isLast && <Divider variant="middle" key={index} />}
-                </Fragment>
-              );
-            })}
-            {shouldDisplayLoadMoreButton && (
-              <div className={classes.flexAlignCenter}>
-                <Button
-                  onClick={() => onLoadMoreButtonClick()}
-                  classes={{ root: classes.loadMoreButton }}
-                  variant="outlined"
-                  disabled={Boolean(fetchError)}
-                >
-                  {loadingMore && <CircularProgress className={classes.buttonLoader} size={24} />}
-                  Load more
-                </Button>
-              </div>
-            )}
-            {fetchError && (
-              <CustomNotification
-                backgroundColor={'white'}
-                linkCallback={fetchError.callback}
-                linkMessage={fetchError.linkMessage}
-                message={fetchError.message}
-                type={iconEnum.ERROR}
-              />
-            )}
-          </Paper>
-        </Collapse>
-      </div>
-      <Divider variant="middle" />
-    </div>
-  );
-});
+  toggleMarkThread = (ref, bool, options = {}) => {
+    const isBulkMarkMode = options.hasOwnProperty('mark');
+    const { mark } = options;
 
-export default ThreadItem;
+    this.setState({
+      threads: this.state.threads.map((thread) => {
+        const marked = isBulkMarkMode ? (mark ? true : false) : thread.ref === ref ? bool : thread.marked;
+
+        return { ...thread, marked };
+      }),
+    });
+  };
+
+  onThreadBarClick = () => {
+    const { ref, selected } = this.props.thread;
+    selected ? this.props.select(ref) : this.fetchMessages();
+  };
+
+  onLoadMoreButtonClick = () => {
+    const { ref } = this.props.thread;
+    const { messageContent } = this.state;
+
+    const params = {
+      ref,
+      num: config.NUMBER_OF_FETCHED_MESSAGES,
+      skip: messageContent.messages.length,
+    };
+
+    this.fetchMoreMessages(params);
+  };
+
+  render() {
+    const { ref, marked, messageNumber, read, selected, title, type } = this.props.thread;
+    const { classes, messageMarkMode, threadMarkMode, toggleMark } = this.props;
+    const { loading, messageContent, fetchError, loadingMore } = this.state;
+    const shouldDisplayLoadMoreButton = messageContent.messages.length < messageContent.total;
+
+    return (
+      <div>
+        <ThreadBar
+          loading={loading}
+          marked={marked}
+          messageMarkMode={messageMarkMode}
+          threadMarkMode={threadMarkMode}
+          messageNumber={messageNumber}
+          onThreadBarClick={this.onThreadBarClick}
+          read={read}
+          reference={ref}
+          selected={selected}
+          title={title}
+          toggleMark={toggleMark}
+          type={type}
+        />
+        <div className={classes.message}>
+          <Collapse in={selected}>
+            <Paper className={classes.expanderContent}>
+              {messageContent.messages.map((message, index) => {
+                const isLast = messageContent.length - 1 === index;
+                return (
+                  <Fragment key={index}>
+                    <MessageItem
+                      message={message}
+                      key={message.ref}
+                      toggleMarkStatus={this.toggleMessageMarkStatus}
+                      markMode={messageMarkMode}
+                    />
+                    {!isLast && <Divider variant="middle" key={index} />}
+                  </Fragment>
+                );
+              })}
+              {shouldDisplayLoadMoreButton && (
+                <div className={classes.flexAlignCenter}>
+                  <Button
+                    onClick={this.onLoadMoreButtonClick}
+                    classes={{ root: classes.loadMoreButton }}
+                    variant="outlined"
+                    disabled={Boolean(fetchError)}
+                  >
+                    {loadingMore && <CircularProgress className={classes.buttonLoader} size={24} />}
+                    Load more
+                  </Button>
+                </div>
+              )}
+              {fetchError && (
+                <CustomNotification
+                  backgroundColor={'white'}
+                  linkCallback={fetchError.callback}
+                  linkMessage={fetchError.linkMessage}
+                  message={fetchError.message}
+                  type={iconEnum.ERROR}
+                />
+              )}
+            </Paper>
+          </Collapse>
+        </div>
+        <Divider variant="middle" />
+      </div>
+    );
+  }
+}
+
+export default withStyles(useStyles)(ThreadItem);
