@@ -18,12 +18,8 @@ class ThreadList extends Component {
     this.setState({ loading: true }, () => this.fetchThreadData());
   }
 
-  fetchThreadData = async () => {
-    const params = {
-      num: config.NUMBER_OF_FETCHED_THREADS,
-      skip: 0,
-    };
-
+  fetchThreadData = async (num = config.NUMBER_OF_FETCHED_THREADS, skip = 0) => {
+    const params = { num, skip };
     try {
       const response = parseAxiosResponse(await requestService('getthreads', params));
       this.onSuccessfulThreadFetch(response);
@@ -32,8 +28,12 @@ class ThreadList extends Component {
     }
   };
 
-  onSuccessfulThreadFetch = (response) => {
-    this.setState({ threads: this.parseResponse(response), loading: false }, () =>
+  onSuccessfulThreadFetch = (response, options = {}) => {
+    const { isNewThread = false } = options;
+    const responseThreads = this.parseResponse(response, { isNewThread });
+    const currentThreadsRef = this.state.threads.map(({ ref }) => ref);
+    const newThreads = responseThreads.filter((thread) => !currentThreadsRef.includes(thread.ref));
+    this.setState({ threads: [...newThreads, ...this.state.threads], loading: false }, () =>
       this.props.toggleFullscreenLoader({ showLoader: false })
     );
   };
@@ -65,14 +65,14 @@ class ThreadList extends Component {
     );
   };
 
-  parseResponse = (response) => {
+  parseResponse = (response, { isNewThread }) => {
     return response.data.threads.map(({ ref, title, cd, date, nummess, unreadmess, type, read }) => {
       return {
         canBeDeleted: cd === boolEnum.TRUE,
         date: date,
         loading: false,
         marked: false,
-        messageNumber: nummess,
+        messageNumber: isNewThread ? 1 : nummess,
         read: read === boolEnum.TRUE,
         ref,
         selected: false,
@@ -149,6 +149,7 @@ class ThreadList extends Component {
           messageMarkMode={this.props.messageMarkMode}
           ref={thread.selected && this.props.messageRef}
           select={this.handleThreadSelection}
+          setSnackbarMessage={this.props.setSnackbarMessage}
           thread={thread}
           threadMarkMode={this.props.threadMarkMode}
           toggleMark={this.toggleMarkThread}
