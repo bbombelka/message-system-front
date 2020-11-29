@@ -3,13 +3,13 @@ import { Avatar, Button, Card, CardHeader } from '@material-ui/core';
 import { CircularProgress, Container, IconButton, OutlinedInput } from '@material-ui/core';
 import { InputAdornment, InputLabel, FormControl, TextField } from '@material-ui/core';
 import { config } from '../../../config';
+import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import copyEnum from '../../../enums/copy.enum';
 import Notification from '../Notification/Notification';
 import errorsEnum from '../../../enums/errors.enum';
 import React, { Component } from 'react';
 import regexEnum from '../../../enums/regex.enum';
 import { withRouter } from 'react-router';
-import { withStyles } from '@material-ui/core/styles';
 import { Message, Visibility, VisibilityOff, VpnKey } from '@material-ui/icons/';
 import './styles.css';
 
@@ -146,9 +146,7 @@ class LoginFormComponent extends Component {
     const requestNotificationMessage = copyEnum.GENERIC_LOGIN_SUCCESS;
     this.persistWebTokens(response.data.data);
     this.showNotification({ requestNotificationMessage }, () => {
-      this.setState({ loginTextFieldIsDisabled: true }, () =>
-        setTimeout(this.proceedToMessages, 500)
-      );
+      this.setState({ loginTextFieldIsDisabled: true }, () => setTimeout(this.proceedToMessages, 500));
     });
   };
 
@@ -174,10 +172,7 @@ class LoginFormComponent extends Component {
     );
   };
 
-  showNotification = (
-    { requestNotificationMessage, requestNotificationType = 'success' },
-    callback = () => null
-  ) => {
+  showNotification = ({ requestNotificationMessage, requestNotificationType = 'success' }, callback = () => null) => {
     this.setState(
       {
         requestNotificationMessage,
@@ -210,10 +205,6 @@ class LoginFormComponent extends Component {
       showPassword,
       showRequestNotification,
     } = this.state;
-
-    const StyledCircularProgress = withStyles({
-      root: { position: 'absolute', top: '20%' },
-    })(CircularProgress);
 
     return (
       <Container maxWidth="sm">
@@ -280,16 +271,15 @@ class LoginFormComponent extends Component {
               />
             </div>
             <div className="login-form-item">
-              <Button
-                color="primary"
+              <ButtonWithLoader
+                click={this.onLogInButtonClick}
                 disabled={loginButtonIsDisabled}
-                onClick={this.onLogInButtonClick}
-                startIcon={<VpnKey />}
-                variant="contained"
+                icon={<VpnKey />}
+                isLoading={isMakingRequest}
+                styles={{ margin: '0 0 0 12px', backgroundColor: 'beige' }}
               >
                 Log in
-              </Button>
-              {isMakingRequest && <StyledCircularProgress size={24} />}
+              </ButtonWithLoader>
             </div>
           </form>
         </Card>

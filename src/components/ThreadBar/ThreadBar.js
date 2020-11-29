@@ -18,8 +18,7 @@ const useStyle = makeStyles({
     display: 'flex',
     alignItems: 'center',
     flexWrap: 'nowrap',
-    cursor: ({ threadMarkMode, messageMarkMode }) =>
-      threadMarkMode || messageMarkMode ? 'not-allowed' : 'pointer',
+    cursor: ({ threadMarkMode, messageMarkMode }) => (threadMarkMode || messageMarkMode ? 'not-allowed' : 'pointer'),
     transition: 'all .2s',
     '& div': {
       padding: '12px',
@@ -74,6 +73,7 @@ const ThreadBar = (props) => {
     read,
     reference,
     selected,
+    setSnackbarMessage,
     title,
     toggleMark,
     type,
@@ -82,10 +82,12 @@ const ThreadBar = (props) => {
   const chevronClassName = classes.chevron.concat(selected ? ` ${classes.chevronSelected}` : '');
   const titleClassName = classes.flexAlignCenter.concat(loading ? ` ${classes.loading}` : '');
 
-  const onClick = () => {
-    threadMarkMode || messageMarkMode
-      ? console.log('display info to disable mark mode first')
-      : onThreadBarClick();
+  const onClick = (e) => {
+    threadMarkMode || messageMarkMode ? setSnackbarMessage('Disable mark mode first.') : onThreadBarClick();
+  };
+
+  const onCheckboxChange = (e) => {
+    toggleMark(reference, !marked);
   };
 
   return (
@@ -111,7 +113,8 @@ const ThreadBar = (props) => {
           <Checkbox
             color="default"
             checked={marked}
-            onChange={() => toggleMark(reference, !marked)}
+            onClick={(e) => e.stopPropagation()}
+            onChange={onCheckboxChange}
             classes={{ root: classes.checkBox, checked: classes.checkBox }}
           />
         ) : (

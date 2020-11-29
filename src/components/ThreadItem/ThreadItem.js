@@ -221,6 +221,7 @@ class ThreadItem extends Component {
           read={read}
           reference={ref}
           selected={selected}
+          setSnackbarMessage={this.props.setSnackbarMessage}
           title={title}
           toggleMark={toggleMark}
           type={type}
