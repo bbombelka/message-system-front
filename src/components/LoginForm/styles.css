@@ -1,0 +1,26 @@
+.login-form {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.login-form-item {
+  display: flex;
+  justify-content: center;
+  width: 75%;
+  margin: 1.2rem;
+  position: relative;
+}
+
+.login-form-item > *:first-child {
+  width: 250px;
+}
+
+.button-loader {
+  position: 'absolute';
+  top: '20%';
+}
+
+.login-notification {
+  width: 75%;
+}
