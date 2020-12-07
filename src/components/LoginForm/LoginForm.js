@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { Avatar, Button, Card, CardHeader } from '@material-ui/core';
-import { CircularProgress, Container, IconButton, OutlinedInput } from '@material-ui/core';
+import { Avatar, Card, CardHeader } from '@material-ui/core';
+import { Container, IconButton, OutlinedInput } from '@material-ui/core';
 import { InputAdornment, InputLabel, FormControl, TextField } from '@material-ui/core';
 import { config } from '../../../config';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
@@ -11,7 +11,28 @@ import React, { Component } from 'react';
 import regexEnum from '../../../enums/regex.enum';
 import { withRouter } from 'react-router';
 import { Message, Visibility, VisibilityOff, VpnKey } from '@material-ui/icons/';
-import './styles.css';
+import { withStyles } from '@material-ui/core/styles';
+
+const useStyles = () => ({
+  loginForm: {
+    display: 'flex',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  loginFormItem: {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '75%',
+    margin: '12px',
+    position: 'relative',
+  },
+  width: {
+    width: '250px',
+  },
+  loginNotification: {
+    width: ' 75%',
+  },
+});
 
 class LoginFormComponent extends Component {
   state = {
@@ -206,10 +227,10 @@ class LoginFormComponent extends Component {
       showRequestNotification,
     } = this.state;
 
+    const { classes } = this.props;
+
     return (
       <Container maxWidth="sm">
-        {' '}
-        //poziom wyżej comtainer z maxWidth md
         <Card>
           <CardHeader
             title="Welcome to Message System"
@@ -219,10 +240,11 @@ class LoginFormComponent extends Component {
               </Avatar>
             }
           ></CardHeader>
-          <form className="login-form">
-            <div className="login-form-item">
+          <form className={classes.loginForm}>
+            <div className={classes.loginFormItem}>
               <TextField
                 autoComplete="off"
+                classes={{ root: classes.width }}
                 id="login"
                 disabled={loginTextFieldIsDisabled}
                 error={loginError}
@@ -237,10 +259,11 @@ class LoginFormComponent extends Component {
                 variant="outlined"
               />
             </div>
-            <div className="login-form-item">
+            <div className={classes.loginFormItem}>
               <FormControl variant="outlined">
                 <InputLabel htmlFor="password">Password</InputLabel>
                 <OutlinedInput
+                  classes={{ root: classes.width }}
                   labelWidth={70}
                   disabled={passwordTextFieldIsDisabled}
                   id="password"
@@ -262,7 +285,7 @@ class LoginFormComponent extends Component {
                 />
               </FormControl>
             </div>
-            <div className="login-notification">
+            <div className={classes.loginNotification}>
               <Notification
                 close={this.closeNotification}
                 message={requestNotificationMessage}
@@ -270,7 +293,7 @@ class LoginFormComponent extends Component {
                 visible={showRequestNotification}
               />
             </div>
-            <div className="login-form-item">
+            <div className={classes.loginFormItem}>
               <ButtonWithLoader
                 click={this.onLogInButtonClick}
                 disabled={loginButtonIsDisabled}
@@ -288,6 +311,6 @@ class LoginFormComponent extends Component {
   }
 }
 
-const LoginForm = withRouter(LoginFormComponent);
+const LoginForm = withRouter(withStyles(useStyles)(LoginFormComponent));
 
 export default LoginForm;

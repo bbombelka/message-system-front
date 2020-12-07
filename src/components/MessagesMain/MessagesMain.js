@@ -31,16 +31,17 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   const [threadMarkMode, setThreadMarkMode] = useState(false);
   const [messageMarkMode, setMessageMarkMode] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [showTextEditor, setShowTextEditor] = useState(true);
+  const [showTextEditor, setShowTextEditor] = useState(false);
 
   const threads = useRef(null);
   const messages = useRef(null);
   const isToolbarVertical = window.innerWidth > 1057;
   const markMode = threadMarkMode || messageMarkMode;
+
   // add resize listener
 
   useEffect(() => {
-    const isThreadSelected = threads.current.state.threads.some((thread) => thread.selected);
+    const isThreadSelected = Boolean(threads.current.getSelectedThread());
     const setSource = () => {
       isThreadSelected ? setIsMessage(true) : setIsMessage(false);
     };
@@ -143,8 +144,9 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
     threads.current.onSuccessfulThreadFetch(response, { isNewThread: true });
   };
 
-  const onRepliedInThread = (data) => {
+  const onRepliedInThread = (data, { ref }) => {
     messages.current.onSuccessfulLoadMoreMessagesFetch(data);
+    threads.current.incrementMessageNumber(ref);
   };
 
   const selectedThread = isMessage ? threads.current.state.threads.find(({ selected }) => selected) : null;
@@ -168,15 +170,14 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
         unMarkAll={unMarkAll}
       />
       <Container classes={{ root: classes.containerRoot }} maxWidth="md">
-        {showTextEditor && (
-          <TextEditor
-            onNewThreadStarted={onNewThreadStarted}
-            onRepliedInThread={onRepliedInThread}
-            setSnackbarMessage={setSnackbarMessage}
-            setShowTextEditor={setShowTextEditor}
-            thread={selectedThread}
-          ></TextEditor>
-        )}
+        <TextEditor
+          onNewThreadStarted={onNewThreadStarted}
+          onRepliedInThread={onRepliedInThread}
+          showTextEditor={showTextEditor}
+          setSnackbarMessage={setSnackbarMessage}
+          setShowTextEditor={setShowTextEditor}
+          thread={selectedThread}
+        />
         <ThreadList
           messageMarkMode={messageMarkMode}
           messageRef={messages}

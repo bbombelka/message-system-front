@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { Button, CircularProgress } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 
@@ -7,6 +7,7 @@ const useStyles = makeStyles({
     margin: ({ styles }) => styles.margin,
     color: 'rgba(100, 0, 0, 0.87)',
     backgroundColor: ({ styles }) => styles.backgroundColor || 'inherit',
+    position: 'relative',
   },
   root: {
     position: 'relative',
@@ -14,7 +15,7 @@ const useStyles = makeStyles({
 });
 
 const StyledCircularProgress = withStyles({
-  root: { position: 'absolute', top: '20%', left: '42%' },
+  root: { position: 'absolute', top: '6px', left: '32px' },
   colorPrimary: { color: 'rgba(100, 0, 0, 0.87)' },
 })(CircularProgress);
 
@@ -33,8 +34,8 @@ const ButtonWithLoader = (props) => {
         variant="outlined"
       >
         {props.children}
+        {isLoading && <StyledCircularProgress size={24} />}
       </Button>
-      {isLoading && <StyledCircularProgress size={24} />}
     </div>
   );
 };

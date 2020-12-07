@@ -7,6 +7,13 @@ import { config } from '../../../config';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import errorsEnum from '../../../enums/errors.enum';
 import iconEnum from '../Icon/Icon.enum';
+import { withStyles } from '@material-ui/core/styles';
+
+const useStyles = () => ({
+  root: {
+    marginBottom: '56px',
+  },
+});
 
 class ThreadList extends Component {
   state = {
@@ -84,12 +91,16 @@ class ThreadList extends Component {
   };
 
   handleThreadSelection = (ref) => {
-    const selectedThread = this.state.threads.find(({ selected }) => selected);
+    const selectedThread = this.getSelectedThread();
 
     if (selectedThread && selectedThread.ref === ref) {
       return this.deselectThreads();
     }
     this.selectThread(ref);
+  };
+
+  getSelectedThread = () => {
+    return this.state.threads.find(({ selected }) => selected);
   };
 
   deselectThreads = () => {
@@ -109,7 +120,7 @@ class ThreadList extends Component {
           return { ...thread, ...threadProps, selected };
         }),
       },
-      () => this.props.toggleToolbar(true)
+      () => this.props.toggleToolbar(ref)
     );
   };
 
@@ -129,6 +140,18 @@ class ThreadList extends Component {
   markAsRead = (ref) => {
     const options = { read: true };
     this.selectThread(ref, options);
+  };
+
+  incrementMessageNumber = (ref) => {
+    const threads = this.state.threads.map((thread) => {
+      const current = thread.ref === ref;
+      const messageNumber = current ? thread.messageNumber + 1 : thread.messageNumber;
+      return {
+        ...thread,
+        messageNumber,
+      };
+    });
+    this.setState({ threads });
   };
 
   render() {
@@ -173,9 +196,9 @@ class ThreadList extends Component {
         backgroundColor={'white'}
       />
     ) : (
-      <Card>{!loading && threadList}</Card>
+      <Card classes={{ root: this.props.classes.root }}>{!loading && threadList}</Card>
     );
   }
 }
 
-export default ThreadList;
+export default withStyles(useStyles)(ThreadList);

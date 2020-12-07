@@ -2,7 +2,6 @@ import React from 'react';
 import { ContactMailOutlined, PersonOutline } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import { Checkbox, Typography } from '@material-ui/core';
-import messageTypeEnum from '../../../enums/messageType.enum';
 
 const useStyles = makeStyles({
   root: {

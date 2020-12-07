@@ -91,12 +91,15 @@ class ThreadItem extends Component {
 
   parseResponse = (data) => {
     const parsedMessages = data.messages.map((message) => {
+      const { processed = undefined } = message;
+      const parsedProcessedValue = processed === undefined ? undefined : processed === bool.TRUE;
       return {
         //parsing taki sam
         ...message,
         read: message.read === bool.TRUE,
         attachments: message.attach,
         marked: false,
+        processed: parsedProcessedValue,
       };
     });
 
