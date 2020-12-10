@@ -145,7 +145,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   };
 
   const onRepliedInThread = (data, { ref }) => {
-    messages.current.onSuccessfulLoadMoreMessagesFetch(data);
+    messages.current.onNewMessageAdded(data.messages);
     threads.current.incrementMessageNumber(ref);
   };
 

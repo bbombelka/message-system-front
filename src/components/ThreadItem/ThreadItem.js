@@ -1,7 +1,6 @@
 import React, { Fragment, Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import { Button, CircularProgress, Collapse, Divider } from '@material-ui/core';
-import { Paper } from '@material-ui/core';
+import { Collapse, Divider, Paper } from '@material-ui/core';
 import MessageItem from '../MessageItem/MessageItem';
 import ThreadBar from '../ThreadBar/ThreadBar';
 import { config } from '../../../config';
@@ -9,6 +8,8 @@ import { requestService, parseAxiosResponse, parseErrorResponse } from '../../..
 import CustomNotification from '../CustomNotification/CustomNotification';
 import iconEnum from '../Icon/Icon.enum';
 import bool from '../../../enums/bool.enum';
+import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
+import { AddCircle } from '@material-ui/icons';
 
 const useStyles = () => ({
   expanderContent: {
@@ -18,18 +19,8 @@ const useStyles = () => ({
     overflow: 'hidden',
     color: 'rgba(100, 0, 0, 0.87)',
   },
-  loadMoreButton: {
-    margin: '12px',
-    color: 'rgba(100, 0, 0, 0.87)',
-    position: 'relative',
-  },
-  buttonLoader: {
-    position: 'absolute',
-    top: '20%',
-  },
   flexAlignCenter: {
     display: 'flex',
-    alignItems: 'center',
     justifyContent: 'center',
   },
 });
@@ -62,7 +53,8 @@ class ThreadItem extends Component {
 
   onSuccessfulMessageFetch = (data) => {
     const { ref } = this.props.thread;
-    const parsedMessageContent = this.parseResponse(data);
+    const parsedMessageContent = { messages: this.parseMessages(data.messages), total: data.total };
+
     this.setState(
       { messageContent: parsedMessageContent, loading: false },
       () => !this.props.thread.read && this.handleReadStatus()
@@ -89,12 +81,11 @@ class ThreadItem extends Component {
     };
   };
 
-  parseResponse = (data) => {
-    const parsedMessages = data.messages.map((message) => {
+  parseMessages = (messages) => {
+    return messages.map((message) => {
       const { processed = undefined } = message;
       const parsedProcessedValue = processed === undefined ? undefined : processed === bool.TRUE;
       return {
-        //parsing taki sam
         ...message,
         read: message.read === bool.TRUE,
         attachments: message.attach,
@@ -102,8 +93,6 @@ class ThreadItem extends Component {
         processed: parsedProcessedValue,
       };
     });
-
-    return { messages: parsedMessages, total: data.total };
   };
 
   fetchMoreMessages = async (params) => {
@@ -118,14 +107,7 @@ class ThreadItem extends Component {
   };
 
   onSuccessfulLoadMoreMessagesFetch = ({ messages }) => {
-    const parsedMessages = messages.map((message) => {
-      return {
-        ...message,
-        read: message.read === bool.TRUE,
-        processed: message.processed === bool.TRUE,
-        marked: false,
-      };
-    });
+    const parsedMessages = this.parseMessages(messages);
     this.setState(
       {
         messageContent: {
@@ -206,6 +188,17 @@ class ThreadItem extends Component {
     this.fetchMoreMessages(params);
   };
 
+  onNewMessageAdded = (messages) => {
+    const parsedMessage = this.parseMessages(messages).pop();
+    this.setState({
+      messageContent: {
+        total: this.state.messageContent.total,
+        messages: [parsedMessage, ...this.state.messageContent.messages],
+      },
+      loadingMore: false,
+    });
+  };
+
   render() {
     const { ref, marked, messageNumber, read, selected, title, type } = this.props.thread;
     const { classes, messageMarkMode, threadMarkMode, toggleMark } = this.props;
@@ -248,15 +241,14 @@ class ThreadItem extends Component {
               })}
               {shouldDisplayLoadMoreButton && (
                 <div className={classes.flexAlignCenter}>
-                  <Button
-                    onClick={this.onLoadMoreButtonClick}
-                    classes={{ root: classes.loadMoreButton }}
-                    variant="outlined"
-                    disabled={Boolean(fetchError)}
+                  <ButtonWithLoader
+                    icon={<AddCircle />}
+                    click={this.onLoadMoreButtonClick}
+                    isLoading={loadingMore}
+                    styles={{ margin: '12px', backgroundColor: 'white' }}
                   >
-                    {loadingMore && <CircularProgress className={classes.buttonLoader} size={24} />}
                     Load more
-                  </Button>
+                  </ButtonWithLoader>
                 </div>
               )}
               {fetchError && (

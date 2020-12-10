@@ -4,9 +4,9 @@ import { makeStyles, withStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
   button: {
-    margin: ({ styles }) => styles.margin,
+    margin: ({ styles }) => styles?.margin || '0',
     color: 'rgba(100, 0, 0, 0.87)',
-    backgroundColor: ({ styles }) => styles.backgroundColor || 'inherit',
+    backgroundColor: ({ styles }) => styles?.backgroundColor || 'inherit',
     position: 'relative',
   },
   root: {
@@ -15,7 +15,7 @@ const useStyles = makeStyles({
 });
 
 const StyledCircularProgress = withStyles({
-  root: { position: 'absolute', top: '6px', left: '32px' },
+  root: { position: 'absolute', top: 'calc(50% - 12px)', left: 'calc(50% - 12px)' },
   colorPrimary: { color: 'rgba(100, 0, 0, 0.87)' },
 })(CircularProgress);
 
@@ -26,7 +26,7 @@ const ButtonWithLoader = (props) => {
   return (
     <div className={classes.root}>
       <Button
-        color="primary"
+        color="default"
         classes={{ root: classes.button }}
         disabled={disabled}
         onClick={click}

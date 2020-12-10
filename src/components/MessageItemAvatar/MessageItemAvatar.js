@@ -1,7 +1,8 @@
 import React from 'react';
-import { ContactMailOutlined, PersonOutline } from '@material-ui/icons';
+import { ContactMailOutlined, Edit, PersonOutline } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
-import { Checkbox, Typography } from '@material-ui/core';
+import { Button, Checkbox, Typography } from '@material-ui/core';
+import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 
 const useStyles = makeStyles({
   root: {
@@ -9,7 +10,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    width: '80px',
+    width: '84px',
   },
   icon: { padding: '12px' },
   date: { fontSize: '10px' },
@@ -40,10 +41,10 @@ const MessageItemAvatar = (props) => {
     <div className={classes.root}>
       {avatarIcon}
       <div>
-        <Typography align="center" variant="body2">
+        <Typography align="center" variant="caption">
           {time}
         </Typography>
-        <Typography align="center" variant="body2">
+        <Typography align="center" variant="caption">
           {localeDate}
         </Typography>
       </div>
@@ -51,6 +52,13 @@ const MessageItemAvatar = (props) => {
         <Typography align="center" variant="subtitle2">
           Current status: {processedStatus}
         </Typography>
+      )}
+      {false && (
+        <div>
+          <ButtonWithLoader icon={<Edit></Edit>} styles={{ margin: 'auto 0 0 0', backgroundColor: 'white' }}>
+            Edit
+          </ButtonWithLoader>
+        </div>
       )}
       {markMode && (
         <Checkbox

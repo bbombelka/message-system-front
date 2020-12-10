@@ -34,9 +34,7 @@ const MessageItem = (props) => {
           <Typography classes={{ root: classes.content }}>
             <span dangerouslySetInnerHTML={{ __html: text }}></span>
           </Typography>
-          {attachments.length && (
-            <AttachmentsArea attachments={attachments} reference={ref} key={ref} />
-          )}
+          {Boolean(attachments.length) && <AttachmentsArea attachments={attachments} reference={ref} key={ref} />}
         </div>
       </div>
     </React.Fragment>

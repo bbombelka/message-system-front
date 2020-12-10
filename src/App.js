@@ -25,13 +25,10 @@ export class App extends Component {
         <Switch>
           <Route
             exact
-            path="/" // switch to "/" to start with login screen
+            path="/sd" // switch to "/" to start with login screen
             render={() => <LoginForm showFullscreenLoader={this.toggleFullscreenLoader} />}
           />
-          <Route
-            path="/messages"
-            render={() => <MessagesMain toggleFullscreenLoader={this.toggleFullscreenLoader} />}
-          />
+          <Route path="/" render={() => <MessagesMain toggleFullscreenLoader={this.toggleFullscreenLoader} />} />
         </Switch>
       </Router>
       // </Container>

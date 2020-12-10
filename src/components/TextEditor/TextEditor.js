@@ -96,7 +96,7 @@ const TextEditor = (props) => {
 
   const makeRequest = async () => {
     const conditionalParams = thread ? { ref: thread.ref, reply: bool.TRUE } : { reply: bool.FALSE };
-    const params = { ...conditionalParams, title, text: message };
+    const params = { ...conditionalParams, title, text: `<p>${message}</p>` };
 
     try {
       setIsLoading(true);
