@@ -2,16 +2,8 @@ import React from 'react';
 import { Backdrop, CircularProgress } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-const useStyles = makeStyles(() => ({
-  backdrop: {
-    zIndex: 1,
-    color: 'blue',
-  },
-}));
-
-export default function LoaderFullscreen(props) {
+export default function LoaderFullscreen({ open }) {
   const classes = useStyles();
-  const { open } = props;
 
   return (
     <Backdrop open={open} className={classes.backdrop}>
@@ -19,3 +11,10 @@ export default function LoaderFullscreen(props) {
     </Backdrop>
   );
 }
+
+const useStyles = makeStyles(() => ({
+  backdrop: {
+    zIndex: 1,
+    color: 'blue',
+  },
+}));

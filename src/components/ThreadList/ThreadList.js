@@ -9,12 +9,6 @@ import errorsEnum from '../../../enums/errors.enum';
 import iconEnum from '../Icon/Icon.enum';
 import { withStyles } from '@material-ui/core/styles';
 
-const useStyles = () => ({
-  root: {
-    marginBottom: '56px',
-  },
-});
-
 class ThreadList extends Component {
   state = {
     threads: [],
@@ -200,5 +194,11 @@ class ThreadList extends Component {
     );
   }
 }
+
+const useStyles = () => ({
+  root: {
+    marginBottom: '56px',
+  },
+});
 
 export default withStyles(useStyles)(ThreadList);

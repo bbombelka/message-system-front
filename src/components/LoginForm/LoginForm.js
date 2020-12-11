@@ -13,34 +13,12 @@ import { withRouter } from 'react-router';
 import { Message, Visibility, VisibilityOff, VpnKey } from '@material-ui/icons/';
 import { withStyles } from '@material-ui/core/styles';
 
-const useStyles = () => ({
-  loginForm: {
-    display: 'flex',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  loginFormItem: {
-    display: 'flex',
-    justifyContent: 'center',
-    width: '75%',
-    margin: '12px',
-    position: 'relative',
-  },
-  width: {
-    width: '250px',
-  },
-  loginNotification: {
-    width: ' 75%',
-  },
-});
-
 class LoginFormComponent extends Component {
   state = {
     isMakingRequest: false,
     loginTextFieldIsDisabled: false,
     loginButtonIsDisabled: true,
-    loginError: false,
-    loginErrorText: '',
+    oginErrorText: '',
     loginTextFieldValue: '',
     passwordError: '',
     passwordTextFieldIsDisabled: true,
@@ -91,17 +69,11 @@ class LoginFormComponent extends Component {
   };
 
   unsetLoginError = () => {
-    this.setState({
-      loginError: false,
-      loginErrorText: '',
-    });
+    this.setState({ loginErrorText: '' });
   };
 
   setLoginError = () => {
-    this.setState({
-      loginError: true,
-      loginErrorText: 'Invalid login format.',
-    });
+    this.setState({ loginErrorText: 'Invalid login format.' });
   };
 
   onLoginBlur = () => {
@@ -181,7 +153,7 @@ class LoginFormComponent extends Component {
   };
 
   onErrorResponse = (error) => {
-    const errorResponse = (error.response && error.response.data) || {};
+    const errorResponse = error?.response?.data || {};
     const requestNotificationMessage = errorResponse.msg || errorsEnum.GENERIC_LOGIN_ERROR;
 
     this.showNotification(
@@ -215,7 +187,6 @@ class LoginFormComponent extends Component {
     const {
       isMakingRequest,
       loginButtonIsDisabled,
-      loginError,
       loginErrorText,
       loginTextFieldIsDisabled,
       loginTextFieldValue,
@@ -247,7 +218,7 @@ class LoginFormComponent extends Component {
                 classes={{ root: classes.width }}
                 id="login"
                 disabled={loginTextFieldIsDisabled}
-                error={loginError}
+                error={Boolean(loginErrorText)}
                 helperText={loginErrorText}
                 label="Login"
                 onBlur={this.onLoginBlur}
@@ -310,6 +281,27 @@ class LoginFormComponent extends Component {
     );
   }
 }
+
+const useStyles = () => ({
+  loginForm: {
+    display: 'flex',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  loginFormItem: {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '75%',
+    margin: '12px',
+    position: 'relative',
+  },
+  width: {
+    width: '250px',
+  },
+  loginNotification: {
+    width: ' 75%',
+  },
+});
 
 const LoginForm = withRouter(withStyles(useStyles)(LoginFormComponent));
 

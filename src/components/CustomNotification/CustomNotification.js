@@ -2,29 +2,7 @@ import React from 'react';
 import { Card, Link, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Icon from '../Icon/Icon';
-
-const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '16px',
-    backgroundColor: (props) => props.backgroundColor || 'beige',
-  },
-  body: {
-    paddingRight: '24px',
-  },
-  icon: {
-    padding: '24px',
-  },
-  title: {
-    fontWeight: 'bold',
-  },
-  link: {
-    color: 'rgba(100,0,0,0.87)',
-    cursor: 'pointer',
-  },
-});
+import styles from './styles';
 
 const CustomNotification = (props) => {
   const { linkCallback, linkMessage, message, type } = props;
@@ -49,4 +27,5 @@ const CustomNotification = (props) => {
   );
 };
 
+const useStyles = makeStyles(styles);
 export default CustomNotification;

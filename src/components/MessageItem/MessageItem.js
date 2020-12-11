@@ -4,15 +4,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import MessageItemAvatar from '../MessageItemAvatar/MessageItemAvatar';
 import AttachmentsArea from '../AttachmentsArea/AttachmentsArea';
 
-const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-  },
-  content: {
-    padding: '12px',
-  },
-});
-
 const MessageItem = (props) => {
   const { attachments = [], date, marked, processed, ref, text, type } = props.message;
   const { markMode, toggleMarkStatus } = props;
@@ -40,5 +31,14 @@ const MessageItem = (props) => {
     </React.Fragment>
   );
 };
+
+const useStyles = makeStyles({
+  root: {
+    display: 'flex',
+  },
+  content: {
+    padding: '12px',
+  },
+});
 
 export default MessageItem;

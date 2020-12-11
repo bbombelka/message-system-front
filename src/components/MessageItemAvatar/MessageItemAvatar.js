@@ -1,30 +1,11 @@
 import React from 'react';
 import { ContactMailOutlined, Edit, PersonOutline } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
-import { Button, Checkbox, Typography } from '@material-ui/core';
+import { Checkbox, Typography } from '@material-ui/core';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 
-const useStyles = makeStyles({
-  root: {
-    padding: '12px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: '84px',
-  },
-  icon: { padding: '12px' },
-  date: { fontSize: '10px' },
-  checkBox: {
-    color: 'rgba(100,0,0,0.87)',
-    '& checked': {
-      color: 'rgba(100,0,0,0.87)',
-    },
-  },
-  checked: {},
-});
-
 const MessageItemAvatar = (props) => {
-  const { date, marked, markMode, processed, reference, toggleMarkStatus, type } = props;
+  const { date, marked, markMode, processed, reference, toggleMarkStatus } = props;
   const time = new Date(date).toLocaleTimeString().slice(0, 5);
   const localeDate = new Date(date).toLocaleDateString();
   const processedStatus = processed ? 'Read by consultant' : 'Awaiting consideration';
@@ -71,5 +52,23 @@ const MessageItemAvatar = (props) => {
     </div>
   );
 };
+
+const useStyles = makeStyles({
+  root: {
+    padding: '12px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '84px',
+  },
+  icon: { padding: '12px' },
+  date: { fontSize: '10px' },
+  checkBox: {
+    color: 'rgba(100,0,0,0.87)',
+    '& checked': {
+      color: 'rgba(100,0,0,0.87)',
+    },
+  },
+});
 
 export default MessageItemAvatar;

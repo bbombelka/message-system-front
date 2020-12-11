@@ -11,20 +11,6 @@ import bool from '../../../enums/bool.enum';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import { AddCircle } from '@material-ui/icons';
 
-const useStyles = () => ({
-  expanderContent: {
-    backgroundColor: 'beige',
-    margin: '0 12px',
-    marginBottom: '12px',
-    overflow: 'hidden',
-    color: 'rgba(100, 0, 0, 0.87)',
-  },
-  flexAlignCenter: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-});
-
 class ThreadItem extends Component {
   state = {
     loading: false,
@@ -268,5 +254,19 @@ class ThreadItem extends Component {
     );
   }
 }
+
+const useStyles = () => ({
+  expanderContent: {
+    backgroundColor: 'beige',
+    margin: '0 12px',
+    marginBottom: '12px',
+    overflow: 'hidden',
+    color: 'rgba(100, 0, 0, 0.87)',
+  },
+  flexAlignCenter: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+});
 
 export default withStyles(useStyles)(ThreadItem);

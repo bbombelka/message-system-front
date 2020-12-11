@@ -1,30 +1,12 @@
-import React, { useState, Fragment, useEffect } from 'react';
+import React, { useState, Fragment } from 'react';
 import { Dialog, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { Attachment, InsertDriveFile, Image } from '@material-ui/icons';
 import mimeTypeEnum from '../../../enums/mime-type.enum';
 import { requestFileContent } from '../../../helpers/request.helper';
-import extension from '../../../enums/file-extension.enum';
+import extension from '../../../mappers/file-extension.mapper';
 import CustomNotification from '../CustomNotification/CustomNotification';
-
-const useStyles = makeStyles({
-  root: {
-    color: 'rgba(100,0,0,0.87)',
-    display: 'inline-flex',
-    margin: '8px',
-    cursor: 'pointer',
-  },
-  fileSize: {
-    fontSize: '10px',
-    lineHeight: '28px',
-    paddingLeft: '4px',
-  },
-  linkText: {
-    fontSize: '12px',
-    lineHeight: '25px',
-    paddingLeft: '4px',
-  },
-});
+import styles from './styles';
 
 export const AttachmentLink = (props) => {
   const { name, size, mimetype, ref } = props.attachment;
@@ -54,15 +36,7 @@ export const AttachmentLink = (props) => {
     link.click();
   };
 
-  const linkIcon = mimetype ? (
-    mimeTypeEnum.IMAGE.includes(mimetype) ? (
-      <Image />
-    ) : (
-      <InsertDriveFile />
-    )
-  ) : (
-    <Attachment />
-  );
+  const linkIcon = mimetype ? mimeTypeEnum.IMAGE.includes(mimetype) ? <Image /> : <InsertDriveFile /> : <Attachment />;
 
   return (
     <Fragment>
@@ -84,3 +58,5 @@ export const AttachmentLink = (props) => {
     </Fragment>
   );
 };
+
+const useStyles = makeStyles(styles);

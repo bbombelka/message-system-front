@@ -2,23 +2,6 @@ import React from 'react';
 import { Button, CircularProgress } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 
-const useStyles = makeStyles({
-  button: {
-    margin: ({ styles }) => styles?.margin || '0',
-    color: 'rgba(100, 0, 0, 0.87)',
-    backgroundColor: ({ styles }) => styles?.backgroundColor || 'inherit',
-    position: 'relative',
-  },
-  root: {
-    position: 'relative',
-  },
-});
-
-const StyledCircularProgress = withStyles({
-  root: { position: 'absolute', top: 'calc(50% - 12px)', left: 'calc(50% - 12px)' },
-  colorPrimary: { color: 'rgba(100, 0, 0, 0.87)' },
-})(CircularProgress);
-
 const ButtonWithLoader = (props) => {
   const { click, disabled = false, icon, isLoading } = props;
   const classes = useStyles(props);
@@ -39,5 +22,22 @@ const ButtonWithLoader = (props) => {
     </div>
   );
 };
+
+const StyledCircularProgress = withStyles({
+  root: { position: 'absolute', top: 'calc(50% - 12px)', left: 'calc(50% - 12px)' },
+  colorPrimary: { color: 'rgba(100, 0, 0, 0.87)' },
+})(CircularProgress);
+
+const useStyles = makeStyles({
+  button: {
+    margin: ({ styles }) => styles?.margin || '0',
+    color: 'rgba(100, 0, 0, 0.87)',
+    backgroundColor: ({ styles }) => styles?.backgroundColor || 'inherit',
+    position: 'relative',
+  },
+  root: {
+    position: 'relative',
+  },
+});
 
 export default ButtonWithLoader;

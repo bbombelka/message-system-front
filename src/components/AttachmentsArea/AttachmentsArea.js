@@ -3,22 +3,7 @@ import { Card, Divider, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { AttachmentLink } from '../AttachmentLink/AttachmentLink';
 
-const useStyles = makeStyles({
-  root: {
-    margin: '24px 12px 12px',
-  },
-  text: {
-    padding: '12px',
-    fontSize: '14px',
-  },
-  allAttachment: {
-    display: 'inline-block',
-    padding: '8px',
-  },
-});
-
-const AttachmentsArea = (props) => {
-  const { attachments, reference } = props;
+const AttachmentsArea = ({ attachments, reference }) => {
   const styles = useStyles();
   const allAttachmentsLinkProps = {
     ref: reference,
@@ -47,3 +32,17 @@ const AttachmentsArea = (props) => {
 };
 
 export default AttachmentsArea;
+
+const useStyles = makeStyles({
+  root: {
+    margin: '24px 12px 12px',
+  },
+  text: {
+    padding: '12px',
+    fontSize: '14px',
+  },
+  allAttachment: {
+    display: 'inline-block',
+    padding: '8px',
+  },
+});

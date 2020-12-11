@@ -8,22 +8,6 @@ import { makeStyles } from '@material-ui/styles';
 import { requestService, parseAxiosResponse, parseErrorResponse } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 
-const useStyles = makeStyles(() => ({
-  containerRoot: {
-    padding: '0',
-  },
-  snackbar: {
-    bottom: 90,
-  },
-  snackbarContent: {
-    backgroundColor: 'rgba(100,0,0,0.87)',
-    borderRadius: '6px',
-    color: 'white',
-    fontSize: '14px',
-    padding: '12px 72px',
-  },
-}));
-
 const MessagesMain = ({ toggleFullscreenLoader }) => {
   const classes = useStyles();
   const [displayMessageToolbar, setDisplayMessageToolbar] = useState(false);
@@ -203,5 +187,21 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
     </div>
   );
 };
+
+const useStyles = makeStyles(() => ({
+  containerRoot: {
+    padding: '0',
+  },
+  snackbar: {
+    bottom: 90,
+  },
+  snackbarContent: {
+    backgroundColor: 'rgba(100,0,0,0.87)',
+    borderRadius: '6px',
+    color: 'white',
+    fontSize: '14px',
+    padding: '12px 72px',
+  },
+}));
 
 export default MessagesMain;
