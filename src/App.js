@@ -9,8 +9,8 @@ export const App = () => {
   const [showLoader, setShowLoader] = useState(false);
   const classes = useStyles();
   const toggleFullscreenLoader = (options) => {
-    const showLoader = options ? options.showLoader : !showLoader;
-    setShowLoader(showLoader);
+    const value = options ? options.showLoader : !showLoader;
+    setShowLoader(value);
   };
 
   return (
@@ -18,12 +18,12 @@ export const App = () => {
       <Router>
         <LoaderFullscreen open={showLoader} />
         <Switch>
+          <Route path="/" render={() => <MessagesMain toggleFullscreenLoader={toggleFullscreenLoader} />} />
           <Route
             exact
-            path="/" // switch to "/" to start with login screen
+            path="/s" // switch to "/" to start with login screen
             render={() => <LoginForm showFullscreenLoader={toggleFullscreenLoader} />}
           />
-          <Route path="/messages" render={() => <MessagesMain toggleFullscreenLoader={toggleFullscreenLoader} />} />
         </Switch>
       </Router>
     </div>

@@ -15,6 +15,8 @@ const TextEditor = (props) => {
     showTextEditor,
     onNewThreadStarted,
     onRepliedInThread,
+    editedMessage,
+    onEditedMessage,
   } = props;
   const [titleError, setTitleError] = useState(false);
   const [messageError, setMessageError] = useState(false);
@@ -34,14 +36,20 @@ const TextEditor = (props) => {
     !showTextEditor && resetEditor();
   }, [showTextEditor, thread]);
 
+  useEffect(() => {
+    if (editedMessage) {
+      setTitle(editedMessage.title);
+      setMessage(editedMessage.text);
+    }
+  }, [editedMessage]);
+
   const makeRequest = async () => {
-    const conditionalParams = thread ? { ref: thread.ref, reply: bool.TRUE } : { reply: bool.FALSE };
-    const params = { ...conditionalParams, title, text: `<p>${message}</p>` };
+    const { params, service } = getRequestParams();
 
     try {
       setIsLoading(true);
-      const response = parseAxiosResponse(await requestService('sendmessage', params));
-      onSuccessfulRequest(response);
+      const response = parseAxiosResponse(await requestService(service, params));
+      editedMessage ? onSuccessfulEditRequest(response.data) : onSuccessfulSendRequest(response);
     } catch (error) {
       const message = parseErrorResponse(error);
       setSnackbarMessage(message || 'Something went wrong on the way');
@@ -50,13 +58,27 @@ const TextEditor = (props) => {
     }
   };
 
-  const onSuccessfulRequest = (response) => {
+  const getRequestParams = () => {
+    const getWrapper = (params, service) => ({ params, service });
+
+    if (editedMessage) {
+      return getWrapper({ ref: editedMessage.ref, text: message }, 'editmessage');
+    }
+    const conditionalParams = thread ? { ref: thread.ref, reply: bool.TRUE } : { reply: bool.FALSE };
+    return getWrapper({ ...conditionalParams, title, text: `<p>${message}</p>` }, 'sendmessage');
+  };
+
+  const onSuccessfulEditRequest = (data) => {
+    const updatedMessage = data.messages.pop();
+    onEditedMessage(updatedMessage);
+    setShowTextEditor(false);
+    setSnackbarMessage('Your message has been successfuly edited.');
+  };
+
+  const onSuccessfulSendRequest = (response) => {
     thread ? onRepliedInThread(response.data, { ref: thread.ref }) : onNewThreadStarted(response);
     setSnackbarMessage('Your message has been sent.');
-    setMessage('');
-    !thread && setTitle('');
-    setTitleInputTouched(false);
-    setMessageInputTouched(false);
+    setShowTextEditor(false);
   };
 
   const onTitleInput = (e) => {
@@ -119,7 +141,7 @@ const TextEditor = (props) => {
 
   const isTitleDisabled = Boolean(isLoading || thread);
 
-  const headerText = thread ? 'Reply in this thread' : 'Start a new thread';
+  const headerText = editedMessage ? 'Edit message' : thread ? 'Reply in this thread' : 'Start a new thread';
 
   const counterText =
     messageError === 'Message body can have 1000 characters maximum.'

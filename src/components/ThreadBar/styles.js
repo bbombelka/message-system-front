@@ -1,3 +1,5 @@
+import modeEnum from '../../../enums/mode.enum';
+
 export default {
   avatar: {
     width: '24px',
@@ -12,7 +14,7 @@ export default {
     display: 'flex',
     alignItems: 'center',
     flexWrap: 'nowrap',
-    cursor: ({ threadMarkMode, messageMarkMode }) => (threadMarkMode || messageMarkMode ? 'not-allowed' : 'pointer'),
+    cursor: ({ mode }) => (mode !== modeEnum.INTERACTION ? 'not-allowed' : 'pointer'),
     transition: 'all .2s',
     '& div': {
       padding: '12px',
@@ -53,5 +55,4 @@ export default {
       color: 'rgba(100,0,0,0.87)',
     },
   },
-  checked: {},
 };

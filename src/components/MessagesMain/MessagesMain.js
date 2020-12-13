@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import ThreadList from '../ThreadList/ThreadList';
 import MainBar from '../MainBar/MainBar';
 import MessageToolbar from '../MessageToolbar/MessageToolbar';
@@ -7,21 +7,22 @@ import { Container, Snackbar, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import { requestService, parseAxiosResponse, parseErrorResponse } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
+import MainContext from './MessagesMainContext';
+import modeEnum from '../../../enums/mode.enum';
 
 const MessagesMain = ({ toggleFullscreenLoader }) => {
   const classes = useStyles();
   const [displayMessageToolbar, setDisplayMessageToolbar] = useState(false);
   const [isMessage, setIsMessage] = useState(false);
-  const [threadMarkMode, setThreadMarkMode] = useState(false);
-  const [messageMarkMode, setMessageMarkMode] = useState(false);
+  const [mode, setMode] = useState(modeEnum.INTERACTION);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showTextEditor, setShowTextEditor] = useState(false);
+  const [editedMessage, setEditedMessage] = useState(undefined);
 
   const threads = useRef(null);
   const messages = useRef(null);
   const isToolbarVertical = window.innerWidth > 1057;
-  const markMode = threadMarkMode || messageMarkMode;
-
+  const markMode = mode === modeEnum.MARK_THREAD || mode === modeEnum.MARK_MESSAGE;
   // add resize listener
 
   useEffect(() => {
@@ -33,6 +34,14 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
     const delay = displayMessageToolbar ? 0 : 500; // idea behind this is to delay button change. set to 10 and observe toolbar on message deselect
     setTimeout(() => setSource(), delay);
   }, [displayMessageToolbar]);
+
+  useEffect(() => {
+    !showTextEditor && setEditedMessage(undefined);
+  }, [showTextEditor]);
+
+  useEffect(() => {
+    !editedMessage && setMode(modeEnum.INTERACTION);
+  }, [editedMessage]);
 
   const toggleToolbar = (bool) => {
     if (markMode) return;
@@ -133,57 +142,87 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
     threads.current.incrementMessageNumber(ref);
   };
 
+  const editMessage = (ref) => {
+    const editedMessage = messages.current.state.messageContent.messages.find((msg) => msg.ref === ref);
+    setEditedMessage(editedMessage);
+    setMode(modeEnum.EDITION);
+    setShowTextEditor(true);
+  };
+
+  const onEditedMessage = (updatedMessage) => {
+    const currentThreadMessages = messages.current.state.messageContent.messages;
+
+    const editedMessage = {
+      ...currentThreadMessages.find((msg) => msg.ref === updatedMessage.ref),
+      lastUpdated: updatedMessage.lastUpdated,
+      text: updatedMessage.text,
+    };
+
+    const editedMessageIndex = currentThreadMessages.findIndex((msg) => msg.ref === updatedMessage.ref);
+
+    if (editedMessageIndex === -1) {
+      throw new Error();
+    }
+    currentThreadMessages.splice(editedMessageIndex, 1, editedMessage);
+
+    messages.current.setState({
+      messageContent: { messages: currentThreadMessages, total: messages.current.state.messageContent.total },
+    });
+  };
+
   const selectedThread = isMessage ? threads.current.state.threads.find(({ selected }) => selected) : null;
 
   return (
     <div>
-      <MainBar toggleToolbar={toggleToolbar} />
+      <MainContext.Provider value={{ editMessage }}>
+        <MainBar toggleToolbar={toggleToolbar} />
 
-      <MessageToolbar
-        displayed={displayMessageToolbar}
-        vertical={isToolbarVertical}
-        isMessage={isMessage}
-        makeRequest={makeRequest}
-        markAll={markAll}
-        markMode={markMode}
-        reloadItems={reloadItems}
-        setMessageMarkMode={setMessageMarkMode}
-        setShowTextEditor={setShowTextEditor}
-        setSnackbarMessage={setSnackbarMessage}
-        setThreadMarkMode={setThreadMarkMode}
-        unMarkAll={unMarkAll}
-      />
-      <Container classes={{ root: classes.containerRoot }} maxWidth="md">
-        <TextEditor
-          onNewThreadStarted={onNewThreadStarted}
-          onRepliedInThread={onRepliedInThread}
-          showTextEditor={showTextEditor}
-          setSnackbarMessage={setSnackbarMessage}
+        <MessageToolbar
+          displayed={displayMessageToolbar}
+          vertical={isToolbarVertical}
+          isMessage={isMessage}
+          makeRequest={makeRequest}
+          markAll={markAll}
+          mode={mode}
+          reloadItems={reloadItems}
+          setMode={setMode}
           setShowTextEditor={setShowTextEditor}
-          thread={selectedThread}
-        />
-        <ThreadList
-          messageMarkMode={messageMarkMode}
-          messageRef={messages}
-          ref={threads}
-          threadMarkMode={threadMarkMode}
           setSnackbarMessage={setSnackbarMessage}
-          toggleFullscreenLoader={toggleFullscreenLoader}
-          toggleToolbar={toggleToolbar}
+          unMarkAll={unMarkAll}
         />
-      </Container>
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        autoHideDuration={3000}
-        classes={{ root: classes.snackbar }}
-        onClose={() => setSnackbarMessage('')}
-        open={Boolean(snackbarMessage)}
-        key={'bottom' + 'center'}
-      >
-        <div>
-          <Typography className={classes.snackbarContent}>{snackbarMessage}</Typography>
-        </div>
-      </Snackbar>
+        <Container classes={{ root: classes.containerRoot }} maxWidth="md">
+          <TextEditor
+            onEditedMessage={onEditedMessage}
+            editedMessage={editedMessage}
+            onNewThreadStarted={onNewThreadStarted}
+            onRepliedInThread={onRepliedInThread}
+            showTextEditor={showTextEditor}
+            setSnackbarMessage={setSnackbarMessage}
+            setShowTextEditor={setShowTextEditor}
+            thread={selectedThread}
+          />
+          <ThreadList
+            mode={mode}
+            messageRef={messages}
+            ref={threads}
+            setSnackbarMessage={setSnackbarMessage}
+            toggleFullscreenLoader={toggleFullscreenLoader}
+            toggleToolbar={toggleToolbar}
+          />
+        </Container>
+        <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          autoHideDuration={3000}
+          classes={{ root: classes.snackbar }}
+          onClose={() => setSnackbarMessage('')}
+          open={Boolean(snackbarMessage)}
+          key={'bottom' + 'center'}
+        >
+          <div>
+            <Typography className={classes.snackbarContent}>{snackbarMessage}</Typography>
+          </div>
+        </Snackbar>
+      </MainContext.Provider>
     </div>
   );
 };

@@ -1,53 +1,93 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { ContactMailOutlined, Edit, PersonOutline } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import { Checkbox, Typography } from '@material-ui/core';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
+import MainContext from '../MessagesMain/MessagesMainContext';
+import ThreadsContext from '../ThreadList/ThreadsContext';
+import modeEnum from '../../../enums/mode.enum';
 
 const MessageItemAvatar = (props) => {
-  const { date, marked, markMode, processed, reference, toggleMarkStatus } = props;
-  const time = new Date(date).toLocaleTimeString().slice(0, 5);
-  const localeDate = new Date(date).toLocaleDateString();
+  const { date, lastUpdated, marked, processed, reference, toggleMarkStatus } = props;
   const processedStatus = processed ? 'Read by consultant' : 'Awaiting consideration';
   const classes = useStyles();
+  const isInternalMessage = processed === undefined;
+  const mainContext = useContext(MainContext);
+  const threadContext = useContext(ThreadsContext);
 
-  const avatarIcon =
-    processed === undefined ? (
-      <ContactMailOutlined className={classes.icon} />
-    ) : (
-      <PersonOutline className={classes.icon} />
-    );
+  const getTime = (date) => new Date(date).toLocaleTimeString().slice(0, 5);
+  const getLocaleDate = (date) => new Date(date).toLocaleDateString();
+
+  const { mode } = threadContext.state;
+
+  const onEditClicked = () => {
+    mainContext.editMessage(reference);
+  };
 
   return (
     <div className={classes.root}>
-      {avatarIcon}
+      {isInternalMessage ? (
+        <ContactMailOutlined className={classes.icon} />
+      ) : (
+        <PersonOutline className={classes.icon} />
+      )}
       <div>
-        <Typography align="center" variant="caption">
-          {time}
+        <Typography component="h6" align="center" variant="caption">
+          {getTime(date)}
         </Typography>
-        <Typography align="center" variant="caption">
-          {localeDate}
+        <Typography component="h6" align="center" variant="caption">
+          {getLocaleDate(date)}
         </Typography>
       </div>
-      {processed !== undefined && (
-        <Typography align="center" variant="subtitle2">
-          Current status: {processedStatus}
-        </Typography>
+      {!isInternalMessage ? (
+        <div className={classes.status}>
+          <Typography component="h6" align="center" variant="caption">
+            Message status:
+          </Typography>
+          <Typography component="h6" align="center" variant="caption">
+            {processedStatus}
+          </Typography>
+        </div>
+      ) : (
+        ''
       )}
-      {false && (
+      {!isInternalMessage && processed === false ? (
         <div>
-          <ButtonWithLoader icon={<Edit></Edit>} styles={{ margin: 'auto 0 0 0', backgroundColor: 'white' }}>
+          <ButtonWithLoader
+            click={onEditClicked}
+            icon={<Edit></Edit>}
+            styles={{ margin: '4px 0', backgroundColor: 'white' }}
+          >
             Edit
           </ButtonWithLoader>
         </div>
+      ) : (
+        ''
       )}
-      {markMode && (
+      {lastUpdated ? (
+        <div>
+          <Typography component="h6" align="center" variant="caption">
+            Last updated:
+          </Typography>
+          <Typography component="h6" align="center" variant="caption">
+            {getTime(lastUpdated)}
+          </Typography>
+          <Typography component="h6" align="center" variant="caption">
+            {getLocaleDate(lastUpdated)}
+          </Typography>
+        </div>
+      ) : (
+        ''
+      )}
+      {mode === modeEnum.MARK_MESSAGE ? (
         <Checkbox
           color="default"
           checked={marked}
           onChange={() => toggleMarkStatus(reference, !marked)}
           classes={{ root: classes.checkBox, checked: classes.checkBox }}
         />
+      ) : (
+        ''
       )}
     </div>
   );
@@ -62,7 +102,7 @@ const useStyles = makeStyles({
     width: '84px',
   },
   icon: { padding: '12px' },
-  date: { fontSize: '10px' },
+  status: { padding: '12px 0' },
   checkBox: {
     color: 'rgba(100,0,0,0.87)',
     '& checked': {

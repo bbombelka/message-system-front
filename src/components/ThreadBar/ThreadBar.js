@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Avatar, Checkbox, CircularProgress, Typography } from '@material-ui/core';
 import { ExpandMore as ExpandMoreIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import Icon from '../Icon/Icon';
 import styles from './styles';
+import ThreadsContext from '../ThreadList/ThreadsContext';
+import modeEnum from '../../../enums/mode.enum';
 
 const ThreadBar = (props) => {
+  const threadsContext = useContext(ThreadsContext);
   const {
     loading,
     marked,
-    messageMarkMode,
-    threadMarkMode,
     messageNumber,
     onThreadBarClick,
     read,
@@ -21,12 +22,23 @@ const ThreadBar = (props) => {
     toggleMark,
     type,
   } = props;
-  const classes = useStyle(props);
+  const { mode } = threadsContext.state;
+  const classes = useStyle({ mode });
   const chevronClassName = classes.chevron.concat(selected ? ` ${classes.chevronSelected}` : '');
   const titleClassName = classes.flexAlignCenter.concat(loading ? ` ${classes.loading}` : '');
 
-  const onClick = (e) => {
-    threadMarkMode || messageMarkMode ? setSnackbarMessage('Disable mark mode first.') : onThreadBarClick();
+  const onClick = () => {
+    switch (mode) {
+      case modeEnum.MARK_MESSAGE:
+      case modeEnum.THREAD_MESSAGE:
+        return setSnackbarMessage('Disable mark mode first.');
+      case modeEnum.INTERACTION:
+        return onThreadBarClick();
+      case modeEnum.EDITION:
+        return setSnackbarMessage('Please close message editor before selecting another thread.');
+      default:
+        return onThreadBarClick();
+    }
   };
 
   const onCheckboxChange = (e) => {
@@ -52,7 +64,7 @@ const ThreadBar = (props) => {
         <Typography>{messageNumber}</Typography>
       </div>
       <div className={classes.flexAlignCenter}>
-        {threadMarkMode ? (
+        {mode === modeEnum.MARK_THREAD ? (
           <Checkbox
             color="default"
             checked={marked}

@@ -8,16 +8,25 @@ import CustomNotification from '../CustomNotification/CustomNotification';
 import errorsEnum from '../../../enums/errors.enum';
 import iconEnum from '../Icon/Icon.enum';
 import { withStyles } from '@material-ui/core/styles';
+import ThreadsContext from './ThreadsContext';
+import modeEnum from '../../../enums/mode.enum';
 
 class ThreadList extends Component {
   state = {
-    threads: [],
     hasFetchError: false,
+    mode: '',
+    threads: [],
   };
 
-  componentDidMount() {
+  componentDidMount = () => {
     this.setState({ loading: true }, () => this.fetchThreadData());
-  }
+  };
+
+  componentDidUpdate = () => {
+    if (this.props.mode !== this.state.mode) {
+      this.setState({ mode: this.props.mode });
+    }
+  };
 
   fetchThreadData = async (num = config.NUMBER_OF_FETCHED_THREADS, skip = 0) => {
     const params = { num, skip };
@@ -69,6 +78,7 @@ class ThreadList extends Component {
   parseResponse = (response, { isNewThread }) => {
     return response.data.threads.map(({ ref, title, cd, date, nummess, unreadmess, type, read }) => {
       return {
+        blocked: false,
         canBeDeleted: cd === boolEnum.TRUE,
         date: date,
         loading: false,
@@ -148,6 +158,10 @@ class ThreadList extends Component {
     this.setState({ threads });
   };
 
+  setMode = (mode) => {
+    this.setState({ mode });
+  };
+
   render() {
     const {
       errorLinkMessage,
@@ -163,12 +177,10 @@ class ThreadList extends Component {
         <ThreadItem
           key={thread.ref}
           markAsRead={this.markAsRead}
-          messageMarkMode={this.props.messageMarkMode}
           ref={thread.selected && this.props.messageRef}
           select={this.handleThreadSelection}
           setSnackbarMessage={this.props.setSnackbarMessage}
           thread={thread}
-          threadMarkMode={this.props.threadMarkMode}
           toggleMark={this.toggleMarkThread}
         />
       ))
@@ -190,7 +202,9 @@ class ThreadList extends Component {
         backgroundColor={'white'}
       />
     ) : (
-      <Card classes={{ root: this.props.classes.root }}>{!loading && threadList}</Card>
+      <ThreadsContext.Provider value={{ state: this.state }}>
+        <Card classes={{ root: this.props.classes.root }}>{!loading && threadList}</Card>
+      </ThreadsContext.Provider>
     );
   }
 }

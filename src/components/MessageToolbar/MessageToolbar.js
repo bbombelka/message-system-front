@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { IconButton, Toolbar, Tooltip } from '@material-ui/core';
 import {
   AlternateEmail,
@@ -12,6 +12,7 @@ import {
 } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import styles from './styles';
+import modeEnum from '../../../enums/mode.enum';
 
 const MessageToolbar = (props) => {
   const {
@@ -19,18 +20,19 @@ const MessageToolbar = (props) => {
     isMessage,
     makeRequest,
     markAll,
-    markMode,
+    mode,
     reloadItems,
-    setMessageMarkMode,
+    setMode,
     setShowTextEditor,
     setSnackbarMessage,
-    setThreadMarkMode,
     unMarkAll,
     vertical,
   } = props;
 
+  const markMode = mode === modeEnum.MARK_THREAD || mode === modeEnum.MARK_MESSAGE;
   const classes = useStyles({ markMode, vertical });
   const [hasConfirmedDeletion, setHasConfirmedDeletion] = useState(false);
+
   const getToolbarClassName = () => {
     const orientation = vertical ? 'vertical' : 'horizontal';
 
@@ -42,7 +44,13 @@ const MessageToolbar = (props) => {
   };
 
   const onMarkButtonClick = () => {
-    isMessage ? setMessageMarkMode((prevVal) => !prevVal) : setThreadMarkMode((prevVal) => !prevVal);
+    setMode((currentValue) =>
+      currentValue === modeEnum.MARK_MESSAGE || currentValue === modeEnum.MARK_THREAD
+        ? modeEnum.INTERACTION
+        : isMessage
+        ? modeEnum.MARK_MESSAGE
+        : modeEnum.MARK_THREAD
+    );
     setHasConfirmedDeletion(false);
   };
 
@@ -62,8 +70,8 @@ const MessageToolbar = (props) => {
         ? performDeletion()
         : displayConfirmSnackBar()
       : isMessage
-      ? setMessageMarkMode(true)
-      : setThreadMarkMode(true);
+      ? setMode(modeEnum.MARK_MESSAGE)
+      : setMode(modeEnum.MARK_THREAD);
   };
 
   const performDeletion = () => {
@@ -77,7 +85,7 @@ const MessageToolbar = (props) => {
   };
 
   const onEmailClick = () => {
-    markMode ? makeRequest('sendinemail') : setThreadMarkMode(true);
+    markMode ? makeRequest('sendinemail') : setMode(modeEnum.MARK_THREAD);
   };
 
   const onReplyCreateClick = () => {
@@ -88,7 +96,7 @@ const MessageToolbar = (props) => {
 
   return (
     <Toolbar className={getToolbarClassName()}>
-      {!markMode && (
+      {!markMode ? (
         <Tooltip
           classes={{ tooltip: classes.tooltip }}
           title={getReplyCreateTooltipText()}
@@ -98,8 +106,10 @@ const MessageToolbar = (props) => {
             {isMessage ? <Reply /> : <Create />}
           </IconButton>
         </Tooltip>
+      ) : (
+        ''
       )}
-      {!markMode && (
+      {!markMode ? (
         <Tooltip
           classes={{ tooltip: classes.tooltip }}
           title={getReloadCreateTooltipText()}
@@ -109,6 +119,8 @@ const MessageToolbar = (props) => {
             <Replay />
           </IconButton>
         </Tooltip>
+      ) : (
+        ''
       )}
       <Tooltip classes={{ tooltip: classes.tooltip }} title={getDeleteTooltipText()} placement={tooltipPlacement}>
         <IconButton onClick={onDeleteClick} className={classes.button}>
@@ -116,33 +128,38 @@ const MessageToolbar = (props) => {
         </IconButton>
       </Tooltip>
 
-      {!isMessage && (
+      {!isMessage ? (
         <Tooltip classes={{ tooltip: classes.tooltip }} title={getEmailTooltipText()} placement={tooltipPlacement}>
           <IconButton onClick={onEmailClick} className={classes.button}>
             <AlternateEmail />
           </IconButton>
         </Tooltip>
+      ) : (
+        ''
       )}
-
       <div className={classes.markButtons}>
         <Tooltip classes={{ tooltip: classes.tooltip }} title={getMarkTooltipText()} placement={tooltipPlacement}>
           <IconButton onClick={onMarkButtonClick} classes={{ root: classes.icon }} className={classes.button}>
             <CheckBox />
           </IconButton>
         </Tooltip>
-        {markMode && (
+        {markMode ? (
           <Tooltip classes={{ tooltip: classes.tooltip }} title="Unmark all" placement={tooltipPlacement}>
             <IconButton onClick={() => unMarkAll(isMessage)} className={classes.button}>
               <CheckBoxOutlineBlank />
             </IconButton>
           </Tooltip>
+        ) : (
+          ''
         )}
-        {markMode && (
+        {markMode ? (
           <Tooltip classes={{ tooltip: classes.tooltip }} title="Mark all" placement={tooltipPlacement}>
             <IconButton onClick={() => markAll(isMessage)} className={classes.button}>
               <LibraryAddCheck />
             </IconButton>
           </Tooltip>
+        ) : (
+          ''
         )}
       </div>
     </Toolbar>

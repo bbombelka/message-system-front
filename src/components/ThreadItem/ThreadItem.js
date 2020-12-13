@@ -187,17 +187,16 @@ class ThreadItem extends Component {
 
   render() {
     const { ref, marked, messageNumber, read, selected, title, type } = this.props.thread;
-    const { classes, messageMarkMode, threadMarkMode, toggleMark } = this.props;
+    const { classes, toggleMark } = this.props;
     const { loading, messageContent, fetchError, loadingMore } = this.state;
     const shouldDisplayLoadMoreButton = messageContent.messages.length < messageContent.total;
 
     return (
       <div>
         <ThreadBar
+          blocked={this.props.blocked}
           loading={loading}
           marked={marked}
-          messageMarkMode={messageMarkMode}
-          threadMarkMode={threadMarkMode}
           messageNumber={messageNumber}
           onThreadBarClick={this.onThreadBarClick}
           read={read}
@@ -215,12 +214,7 @@ class ThreadItem extends Component {
                 const isLast = messageContent.length - 1 === index;
                 return (
                   <Fragment key={index}>
-                    <MessageItem
-                      message={message}
-                      key={message.ref}
-                      toggleMarkStatus={this.toggleMessageMarkStatus}
-                      markMode={messageMarkMode}
-                    />
+                    <MessageItem message={message} key={message.ref} toggleMarkStatus={this.toggleMessageMarkStatus} />
                     {!isLast && <Divider variant="middle" key={index} />}
                   </Fragment>
                 );

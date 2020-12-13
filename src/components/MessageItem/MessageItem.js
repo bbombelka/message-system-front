@@ -5,7 +5,7 @@ import MessageItemAvatar from '../MessageItemAvatar/MessageItemAvatar';
 import AttachmentsArea from '../AttachmentsArea/AttachmentsArea';
 
 const MessageItem = (props) => {
-  const { attachments = [], date, marked, processed, ref, text, type } = props.message;
+  const { attachments = [], date, lastUpdated, marked, processed, ref, text, type } = props.message;
   const { markMode, toggleMarkStatus } = props;
   const classes = useStyles();
 
@@ -14,8 +14,8 @@ const MessageItem = (props) => {
       <div className={classes.root}>
         <MessageItemAvatar
           date={date}
+          lastUpdated={lastUpdated}
           marked={marked}
-          markMode={markMode}
           processed={processed}
           reference={ref}
           toggleMarkStatus={toggleMarkStatus}
