@@ -1,33 +1,50 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Card, Divider, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { AttachmentLink } from '../AttachmentLink/AttachmentLink';
+import modeEnum from '../../../enums/mode.enum';
+import { Cancel } from '@material-ui/icons';
 
-const AttachmentsArea = ({ attachments, reference }) => {
-  const styles = useStyles();
+const AttachmentsArea = (props) => {
+  const { attachments, margin, mode = modeEnum.INTERACTION, reference, remove } = props;
+  const classes = useStyles({ margin });
+  const isFileUpload = mode === modeEnum.FILE_UPLOAD;
   const allAttachmentsLinkProps = {
     ref: reference,
     name: 'Download Zipped',
   };
 
   return (
-    <React.Fragment>
-      <Card className={styles.root}>
-        <Typography className={styles.text}>Attachments to this message:</Typography>
+    <Fragment>
+      <Card className={classes.root}>
+        <Typography className={classes.text}>Attachments to this message:</Typography>
         {attachments.map((attach, index) => (
-          <AttachmentLink attachment={attach} key={index} />
+          <AttachmentLink attachment={attach} mode={mode} key={index} remove={remove} />
         ))}
-        {attachments.length > 1 && (
-          <React.Fragment>
+        {attachments.length > 1 ? (
+          <Fragment>
             <Divider variant="middle" />
-            <Typography className={styles.text + ' ' + styles.allAttachment}>
-              Download all attachments as ZIP file:
-            </Typography>
-            <AttachmentLink attachment={allAttachmentsLinkProps} />
-          </React.Fragment>
+            {isFileUpload ? (
+              <Fragment>
+                <Typography className={classes.text + ' ' + classes.allAttachment}>
+                  Remove all attachments
+                  <Cancel onClick={() => remove(null, { bulk: true })} className={classes.cancel}></Cancel>
+                </Typography>
+              </Fragment>
+            ) : (
+              <Fragment>
+                <Typography className={classes.text + ' ' + classes.allAttachment}>
+                  Download all attachments as ZIP file:
+                </Typography>
+                <AttachmentLink attachment={allAttachmentsLinkProps} />
+              </Fragment>
+            )}
+          </Fragment>
+        ) : (
+          ''
         )}
       </Card>
-    </React.Fragment>
+    </Fragment>
   );
 };
 
@@ -35,14 +52,19 @@ export default AttachmentsArea;
 
 const useStyles = makeStyles({
   root: {
-    margin: '24px 12px 12px',
+    margin: ({ margin }) => margin || '24px 12px 12px',
   },
   text: {
     padding: '12px',
     fontSize: '14px',
   },
   allAttachment: {
-    display: 'inline-block',
-    padding: '8px',
+    display: 'inline-flex',
+  },
+  cancel: {
+    color: 'rgba(100,0,0,0.87)',
+    fontSize: '20px',
+    cursor: 'pointer',
+    paddingLeft: '4px',
   },
 });

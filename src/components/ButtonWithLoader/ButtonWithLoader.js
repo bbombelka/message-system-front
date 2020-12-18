@@ -3,12 +3,13 @@ import { Button, CircularProgress } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 
 const ButtonWithLoader = (props) => {
-  const { click, disabled = false, icon, isLoading } = props;
+  const { click, component, disabled = false, icon, isLoading } = props;
   const classes = useStyles(props);
 
   return (
     <div className={classes.root}>
       <Button
+        component={component}
         color="default"
         classes={{ root: classes.button }}
         disabled={disabled}

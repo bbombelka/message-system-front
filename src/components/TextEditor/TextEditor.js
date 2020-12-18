@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
-import { Button, Card, Collapse, Paper, TextField, Typography } from '@material-ui/core';
+import { Button, Card, Collapse, Divider, Paper, TextField, Typography } from '@material-ui/core';
 import { Add, Cancel, Remove, Send } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import { requestService, parseAxiosResponse, parseErrorResponse } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 import styles from './styles';
+import FileUpload from '../FileUpload/FileUpload';
 
 const TextEditor = (props) => {
   const {
@@ -26,6 +27,7 @@ const TextEditor = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isTitleInputTouched, setTitleInputTouched] = useState(false);
   const [isMessageInputTouched, setMessageInputTouched] = useState(false);
+  const [attachments, setAttachments] = useState([]);
 
   const classes = useStyles();
 
@@ -197,6 +199,11 @@ const TextEditor = (props) => {
               <div>
                 <Typography variant="caption">{counterText} </Typography>
               </div>
+              <Divider></Divider>
+              <div>
+                <FileUpload files={attachments} setFiles={setAttachments}></FileUpload>
+              </div>
+              <Divider></Divider>
               <div className={classes.buttons}>
                 <div>
                   <Button

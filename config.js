@@ -4,4 +4,6 @@ export const config = {
   SERVER_URL: 'http://localhost:8001/',
   NUMBER_OF_FETCHED_MESSAGES: 5,
   NUMBER_OF_FETCHED_THREADS: 10,
+  MAX_FILE_SIZE: 1024 * 1024 * 4,
+  MAX_NUMBER_OF_ATTACHMENTS: 5,
 };

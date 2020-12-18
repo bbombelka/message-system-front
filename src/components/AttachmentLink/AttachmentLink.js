@@ -7,16 +7,27 @@ import { requestFileContent } from '../../../helpers/request.helper';
 import extension from '../../../mappers/file-extension.mapper';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import styles from './styles';
+import modeEnum from '../../../enums/mode.enum';
+import { Cancel } from '@material-ui/icons';
 
-export const AttachmentLink = (props) => {
+const AttachmentLinkComponent = (props) => {
   const { name, size, mimetype, ref } = props.attachment;
+  const { mode, remove } = props;
   const [downloadError, setDownloadError] = useState('');
-  const styles = useStyles();
+  const classes = useStyles({ isFileUpload });
+  const isFileUpload = mode === modeEnum.FILE_UPLOAD;
+
   const formatFileSize = (size) => (size / 1024).toFixed(2);
 
-  const onClick = (e) => {
-    e.preventDefault();
-    downloadAttachmentFile();
+  const onLinkClick = (e) => {
+    if (!isFileUpload) {
+      e.preventDefault();
+      downloadAttachmentFile();
+    }
+  };
+
+  const onRemoveAttachmentClick = () => {
+    remove(name);
   };
 
   const downloadAttachmentFile = async () => {
@@ -40,13 +51,12 @@ export const AttachmentLink = (props) => {
 
   return (
     <Fragment>
-      <Typography className={styles.root} onClick={(e) => onClick(e)}>
+      <Typography className={classes.root} onClick={onLinkClick}>
         <span>{linkIcon}</span>
-        <span className={styles.linkText}>
-          <a href="#">{name}</a>
-        </span>
-        {size && <span className={styles.fileSize}>({formatFileSize(size)} Kb)</span>}
+        <span className={classes.linkText}>{isFileUpload ? <span>{name}</span> : <a href="#">{name}</a>}</span>
+        {size && <span className={classes.fileSize}>({formatFileSize(size)} Kb)</span>}
       </Typography>
+      {isFileUpload ? <Cancel onClick={onRemoveAttachmentClick} className={classes.cancel}></Cancel> : ''}
       <Dialog open={Boolean(downloadError)}>
         <CustomNotification
           linkCallback={() => setDownloadError('')}
@@ -60,3 +70,4 @@ export const AttachmentLink = (props) => {
 };
 
 const useStyles = makeStyles(styles);
+export const AttachmentLink = React.memo(AttachmentLinkComponent);

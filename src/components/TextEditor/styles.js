@@ -11,7 +11,7 @@ export default {
   buttons: {
     display: 'flex',
     justifyContent: 'flex-end',
-    paddingBottom: '12px',
+    padding: '12px 0',
   },
   expanderContent: {
     margin: '0 12px 12px',
