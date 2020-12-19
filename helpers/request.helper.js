@@ -1,8 +1,20 @@
 import axios from 'axios';
 import { config } from '../config';
+import { isFileObject } from '../helpers/common.helper';
 
 const headers = {
   JSON: 'application/json',
+};
+
+export const prepareFormData = (params) => {
+  const formData = new FormData();
+  for (const key in params) {
+    const currentValue = params[key];
+    const hasFileContent = Array.isArray(currentValue) && currentValue.some((item) => isFileObject(item));
+
+    hasFileContent ? currentValue.forEach((item) => formData.append(key, item)) : formData.append(key, params[key]);
+  }
+  return formData;
 };
 
 export const requestService = (service, requestParams, requestConfig) => {

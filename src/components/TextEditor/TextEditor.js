@@ -3,10 +3,16 @@ import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import { Button, Card, Collapse, Divider, Paper, TextField, Typography } from '@material-ui/core';
 import { Add, Cancel, Remove, Send } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
-import { requestService, parseAxiosResponse, parseErrorResponse } from '../../../helpers/request.helper';
+import {
+  requestService,
+  parseAxiosResponse,
+  parseErrorResponse,
+  prepareFormData,
+} from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 import styles from './styles';
 import FileUpload from '../FileUpload/FileUpload';
+import { extractServerErrorMessage, extractServerSuccessfulMessage } from '../../../helpers/common.helper';
 
 const TextEditor = (props) => {
   const {
@@ -28,6 +34,7 @@ const TextEditor = (props) => {
   const [isTitleInputTouched, setTitleInputTouched] = useState(false);
   const [isMessageInputTouched, setMessageInputTouched] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [attachmentError, setAttachmentError] = useState('');
 
   const classes = useStyles();
 
@@ -51,13 +58,39 @@ const TextEditor = (props) => {
     try {
       setIsLoading(true);
       const response = parseAxiosResponse(await requestService(service, params));
-      editedMessage ? onSuccessfulEditRequest(response.data) : onSuccessfulSendRequest(response);
+
+      if (editedMessage) {
+        return onSuccessfulEditRequest(response.data);
+      }
+
+      const uploadFileResponse = attachments.length ? await uploadFiles(response) : '';
+      const [errorMessage = '', successMessage = ''] = getServerMessages(uploadFileResponse);
+
+      onSuccessfulSendRequest(response, { errorMessage, successMessage });
     } catch (error) {
       const message = parseErrorResponse(error);
       setSnackbarMessage(message || 'Something went wrong on the way');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const uploadFiles = async (response) => {
+    try {
+      const ref = response.data[thread ? 'messages' : 'threads'][0].ref;
+      const params = prepareFormData({ ref: ref, file: attachments });
+
+      return parseAxiosResponse(await requestService('uploadattachment', params)).data;
+    } catch (error) {
+      return parseErrorResponse(error);
+    }
+  };
+
+  const getServerMessages = (response) => {
+    const errorMessage = extractServerErrorMessage(response);
+    const successMessage = extractServerSuccessfulMessage(response);
+
+    return [errorMessage, successMessage];
   };
 
   const getRequestParams = () => {
@@ -77,9 +110,16 @@ const TextEditor = (props) => {
     setSnackbarMessage('Your message has been successfuly edited.');
   };
 
-  const onSuccessfulSendRequest = (response) => {
+  const onSuccessfulSendRequest = (response, { errorMessage, successMessage }) => {
     thread ? onRepliedInThread(response.data, { ref: thread.ref }) : onNewThreadStarted(response);
-    setSnackbarMessage('Your message has been sent.');
+    const snackbarMessage = `Your message has been sent. ${successMessage} ${
+      errorMessage ? 'There were problem with some uploaded files.' : ''
+    }`;
+    setSnackbarMessage(snackbarMessage);
+    if (errorMessage) {
+      setAttachmentError(errorMessage);
+      return setMessage('');
+    }
     setShowTextEditor(false);
   };
 
@@ -102,7 +142,7 @@ const TextEditor = (props) => {
   };
 
   const onCancel = () => {
-    const hasUnfinishedMessage = Boolean((title && isTitleInputTouched) || message);
+    const hasUnfinishedMessage = Boolean((title && isTitleInputTouched) || message || attachments.length);
     hasUnfinishedMessage ? onUnfinishedMessageClose() : setShowTextEditor(false);
   };
 
@@ -118,6 +158,7 @@ const TextEditor = (props) => {
     setConfirmState('');
     setTitleInputTouched(false);
     setMessageInputTouched(false);
+    setAttachments([]);
   };
 
   const displayConfirmation = () => {
@@ -201,7 +242,12 @@ const TextEditor = (props) => {
               </div>
               <Divider></Divider>
               <div>
-                <FileUpload files={attachments} setFiles={setAttachments}></FileUpload>
+                <FileUpload
+                  files={attachments}
+                  setFiles={setAttachments}
+                  error={attachmentError}
+                  setError={setAttachmentError}
+                ></FileUpload>
               </div>
               <Divider></Divider>
               <div className={classes.buttons}>

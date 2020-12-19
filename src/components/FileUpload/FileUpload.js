@@ -11,9 +11,7 @@ import errorsEnum from '../../../enums/errors.enum';
 import { isFileObject } from '../../../helpers/common.helper';
 import { usePrevious } from '../../../hooks/hooks';
 
-export default function FileUpload({ files, setFiles }) {
-  const [error, setError] = useState(false);
-
+export default function FileUpload({ files, setFiles, error, setError }) {
   const classes = useStyles();
   const fileInput = useRef();
   const previousFiles = usePrevious(files);
