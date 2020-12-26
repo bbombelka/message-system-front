@@ -4,11 +4,10 @@ import { ExpandMore as ExpandMoreIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import Icon from '../Icon/Icon';
 import styles from './styles';
-import ThreadsContext from '../ThreadList/ThreadsContext';
+import MainContext from '../MessagesMain/MessagesMainContext';
 import modeEnum from '../../../enums/mode.enum';
 
 const ThreadBar = (props) => {
-  const threadsContext = useContext(ThreadsContext);
   const {
     loading,
     marked,
@@ -22,7 +21,7 @@ const ThreadBar = (props) => {
     toggleMark,
     type,
   } = props;
-  const { mode } = threadsContext.state;
+  const { mode } = useContext(MainContext);
   const classes = useStyle({ mode });
   const chevronClassName = classes.chevron.concat(selected ? ` ${classes.chevronSelected}` : '');
   const titleClassName = classes.flexAlignCenter.concat(loading ? ` ${classes.loading}` : '');
@@ -35,25 +34,17 @@ const ThreadBar = (props) => {
       case modeEnum.INTERACTION:
         return onThreadBarClick();
       case modeEnum.EDITION:
+      case modeEnum.FILE_UPLOAD:
         return setSnackbarMessage('Please close message editor before selecting another thread.');
       default:
         return onThreadBarClick();
     }
   };
 
-  const onCheckboxChange = (e) => {
-    toggleMark(reference, !marked);
-  };
-
   return (
     <div onClick={onClick} className={classes.root}>
       <div>
-        <Avatar
-          classes={{
-            root: classes.avatar,
-            colorDefault: classes.avatarColor,
-          }}
-        >
+        <Avatar classes={{ root: classes.avatar, colorDefault: classes.avatarColor }}>
           <Icon type={type} />
         </Avatar>
       </div>
@@ -69,7 +60,7 @@ const ThreadBar = (props) => {
             color="default"
             checked={marked}
             onClick={(e) => e.stopPropagation()}
-            onChange={onCheckboxChange}
+            onChange={() => toggleMark(reference, !marked)}
             classes={{ root: classes.checkBox, checked: classes.checkBox }}
           />
         ) : (

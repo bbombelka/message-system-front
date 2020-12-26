@@ -1,13 +1,16 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useContext } from 'react';
 import { Card, Divider, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { AttachmentLink } from '../AttachmentLink/AttachmentLink';
 import modeEnum from '../../../enums/mode.enum';
 import { Cancel } from '@material-ui/icons';
+import MainContext from '../MessagesMain/MessagesMainContext';
 
 const AttachmentsArea = (props) => {
-  const { attachments, margin, mode = modeEnum.INTERACTION, reference, remove } = props;
+  const { attachments, margin, reference, remove } = props;
   const classes = useStyles({ margin });
+  const { mode } = useContext(MainContext);
+
   const isFileUpload = mode === modeEnum.FILE_UPLOAD;
   const allAttachmentsLinkProps = {
     ref: reference,
@@ -21,7 +24,7 @@ const AttachmentsArea = (props) => {
         {attachments.map((attach, index) => (
           <AttachmentLink attachment={attach} mode={mode} key={index} remove={remove} />
         ))}
-        {attachments.length > 1 ? (
+        {attachments.length > 1 && mode !== modeEnum.EDITION ? (
           <Fragment>
             <Divider variant="middle" />
             {isFileUpload ? (

@@ -6,7 +6,7 @@ import AttachmentsArea from '../AttachmentsArea/AttachmentsArea';
 
 const MessageItem = (props) => {
   const { attachments = [], date, lastUpdated, marked, processed, ref, text, type } = props.message;
-  const { markMode, toggleMarkStatus } = props;
+  const { toggleMarkStatus } = props;
   const classes = useStyles();
 
   return (
@@ -38,6 +38,7 @@ const useStyles = makeStyles({
   },
   content: {
     padding: '12px',
+    wordBreak: 'break-word',
   },
 });
 

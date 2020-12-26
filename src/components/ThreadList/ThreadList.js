@@ -9,7 +9,6 @@ import errorsEnum from '../../../enums/errors.enum';
 import iconEnum from '../Icon/Icon.enum';
 import { withStyles } from '@material-ui/core/styles';
 import ThreadsContext from './ThreadsContext';
-import modeEnum from '../../../enums/mode.enum';
 
 class ThreadList extends Component {
   state = {
@@ -79,7 +78,6 @@ class ThreadList extends Component {
     return response.data.threads.map(({ ref, title, cd, date, nummess, unreadmess, type, read }) => {
       return {
         blocked: false,
-        canBeDeleted: cd === boolEnum.TRUE,
         date: date,
         loading: false,
         marked: false,
@@ -128,6 +126,14 @@ class ThreadList extends Component {
     );
   };
 
+  setMessageNumber = (ref, total) => {
+    const updatedThreads = this.state.threads.map((thread) => ({
+      ...thread,
+      messageNumber: thread.ref === ref ? total : thread.messageNumber,
+    }));
+    this.setState({ threads: updatedThreads });
+  };
+
   toggleMarkThread = (ref, bool, options = {}) => {
     const isBulkMarkMode = options.hasOwnProperty('mark');
     const { mark } = options;
@@ -144,18 +150,6 @@ class ThreadList extends Component {
   markAsRead = (ref) => {
     const options = { read: true };
     this.selectThread(ref, options);
-  };
-
-  incrementMessageNumber = (ref) => {
-    const threads = this.state.threads.map((thread) => {
-      const current = thread.ref === ref;
-      const messageNumber = current ? thread.messageNumber + 1 : thread.messageNumber;
-      return {
-        ...thread,
-        messageNumber,
-      };
-    });
-    this.setState({ threads });
   };
 
   setMode = (mode) => {

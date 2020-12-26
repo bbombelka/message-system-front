@@ -3,7 +3,7 @@ export default {
     color: 'rgba(100,0,0,0.87)',
     display: 'inline-flex',
     margin: '8px',
-    cursor: (isFileUpload) => (isFileUpload ? 'auto' : 'pointer'),
+    cursor: (isEditionOrUpload) => (isEditionOrUpload ? 'auto' : 'pointer'),
   },
   fileSize: {
     fontSize: '10px',

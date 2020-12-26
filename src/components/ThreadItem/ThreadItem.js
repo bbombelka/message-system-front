@@ -40,12 +40,17 @@ class ThreadItem extends Component {
   onSuccessfulMessageFetch = (data) => {
     const { ref } = this.props.thread;
     const parsedMessageContent = { messages: this.parseMessages(data.messages), total: data.total };
-
-    this.setState(
-      { messageContent: parsedMessageContent, loading: false },
-      () => !this.props.thread.read && this.handleReadStatus()
+    this.setState({ messageContent: parsedMessageContent, loading: false, threadRef: ref }, () =>
+      this.onMessageContentSet()
     );
-    this.props.select(ref);
+  };
+
+  onMessageContentSet = () => {
+    const { read, ref } = this.props.thread;
+    if (read) {
+      return this.props.select(ref);
+    }
+    this.handleReadStatus();
   };
 
   onFailedFetch = (message) => {
@@ -117,7 +122,10 @@ class ThreadItem extends Component {
     const { ref, unreadMessageNumber } = this.props.thread;
     const { messages } = this.state.messageContent;
     const receivedNumberOfUnreadMessages = messages.filter((message) => !message.read).length;
-    receivedNumberOfUnreadMessages === unreadMessageNumber && this.props.markAsRead(ref);
+    if (receivedNumberOfUnreadMessages === unreadMessageNumber) {
+      return this.props.markAsRead(ref);
+    }
+    this.props.select(ref);
   };
 
   fetchErrorCallback = () => {

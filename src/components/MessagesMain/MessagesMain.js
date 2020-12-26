@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ThreadList from '../ThreadList/ThreadList';
 import MainBar from '../MainBar/MainBar';
 import MessageToolbar from '../MessageToolbar/MessageToolbar';
@@ -113,10 +113,20 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   };
 
   const removeMessages = (deletedItemsRefs, total) => {
+    const threadRef = messages.current.state.threadRef;
     const currentMessages = messages.current.state.messageContent.messages;
     const messagesAfterDeletion = currentMessages.filter(({ ref }) => !deletedItemsRefs.includes(ref));
-    const deleteCallback =
-      messagesAfterDeletion.length && total ? () => {} : () => messages.current.onLoadMoreButtonClick();
+    const deleteCallback = () => {
+      const shouldFetchMoreMessages = !messagesAfterDeletion.length && total;
+      if (!total) {
+        removeThreads([threadRef]);
+        return setDisplayMessageToolbar(false);
+      }
+      if (shouldFetchMoreMessages) {
+        messages.current.onLoadMoreButtonClick();
+      }
+      threads.current.setMessageNumber(threadRef, total);
+    };
 
     messages.current.setState({ messageContent: { messages: messagesAfterDeletion, total } }, () => deleteCallback());
   };
@@ -139,7 +149,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
 
   const onRepliedInThread = (data, { ref }) => {
     messages.current.onNewMessageAdded(data.messages);
-    threads.current.incrementMessageNumber(ref);
+    threads.current.setMessageNumber(ref, messages.current.state.messageContent.total + 1);
   };
 
   const editMessage = (ref) => {
@@ -174,7 +184,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
 
   return (
     <div>
-      <MainContext.Provider value={{ editMessage }}>
+      <MainContext.Provider value={{ editMessage, mode, setMode }}>
         <MainBar toggleToolbar={toggleToolbar} />
 
         <MessageToolbar
@@ -192,6 +202,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
         />
         <Container classes={{ root: classes.containerRoot }} maxWidth="md">
           <TextEditor
+            mode={mode}
             onEditedMessage={onEditedMessage}
             editedMessage={editedMessage}
             onNewThreadStarted={onNewThreadStarted}
@@ -201,6 +212,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
             setShowTextEditor={setShowTextEditor}
             thread={selectedThread}
           />
+          <Typography>Your Current Messages</Typography>
           <ThreadList
             mode={mode}
             messageRef={messages}

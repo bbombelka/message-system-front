@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import { Button, Card, Collapse, Divider, Paper, TextField, Typography } from '@material-ui/core';
 import { Add, Cancel, Remove, Send } from '@material-ui/icons';
@@ -13,9 +13,12 @@ import bool from '../../../enums/bool.enum';
 import styles from './styles';
 import FileUpload from '../FileUpload/FileUpload';
 import { extractServerErrorMessage, extractServerSuccessfulMessage } from '../../../helpers/common.helper';
+import modeEnum from '../../../enums/mode.enum';
+import AttachmentsArea from '../AttachmentsArea/AttachmentsArea';
 
 const TextEditor = (props) => {
   const {
+    mode,
     thread,
     setShowTextEditor,
     setSnackbarMessage,
@@ -49,6 +52,7 @@ const TextEditor = (props) => {
     if (editedMessage) {
       setTitle(editedMessage.title);
       setMessage(editedMessage.text);
+      setAttachments(editedMessage.attachments);
     }
   }, [editedMessage]);
 
@@ -77,7 +81,7 @@ const TextEditor = (props) => {
 
   const uploadFiles = async (response) => {
     try {
-      const ref = response.data[thread ? 'messages' : 'threads'][0].ref;
+      const ref = response.data.messages[0].ref;
       const params = prepareFormData({ ref: ref, file: attachments });
 
       return parseAxiosResponse(await requestService('uploadattachment', params)).data;
@@ -121,6 +125,16 @@ const TextEditor = (props) => {
       return setMessage('');
     }
     setShowTextEditor(false);
+  };
+
+  const removeAttachments = (name, options = {}) => {
+    const { bulk } = options;
+
+    if (bulk) {
+      return setAttachments([]);
+    }
+
+    setAttachments(attachments.filter((attachment) => attachment.name !== name));
   };
 
   const onTitleInput = (e) => {
@@ -241,15 +255,35 @@ const TextEditor = (props) => {
                 <Typography variant="caption">{counterText} </Typography>
               </div>
               <Divider></Divider>
-              <div>
-                <FileUpload
-                  files={attachments}
-                  setFiles={setAttachments}
-                  error={attachmentError}
-                  setError={setAttachmentError}
-                ></FileUpload>
-              </div>
-              <Divider></Divider>
+              {mode === modeEnum.EDITION ? (
+                attachments.length ? (
+                  <Fragment>
+                    <div>
+                      <AttachmentsArea
+                        attachments={attachments}
+                        margin={'12px 0'}
+                        remove={removeAttachments}
+                      ></AttachmentsArea>
+                    </div>
+                    <Divider></Divider>
+                  </Fragment>
+                ) : (
+                  ''
+                )
+              ) : (
+                <Fragment>
+                  <div>
+                    <FileUpload
+                      removeAttachments={removeAttachments}
+                      files={attachments}
+                      setFiles={setAttachments}
+                      error={attachmentError}
+                      setError={setAttachmentError}
+                    ></FileUpload>
+                  </div>
+                  <Divider></Divider>
+                </Fragment>
+              )}
               <div className={classes.buttons}>
                 <div>
                   <Button

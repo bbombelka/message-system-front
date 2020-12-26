@@ -1,33 +1,51 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, Fragment, useContext } from 'react';
 import { Dialog, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { Attachment, InsertDriveFile, Image } from '@material-ui/icons';
 import mimeTypeEnum from '../../../enums/mime-type.enum';
-import { requestFileContent } from '../../../helpers/request.helper';
+import {
+  requestFileContent,
+  requestService,
+  parseAxiosResponse,
+  parseErrorResponse,
+} from '../../../helpers/request.helper';
 import extension from '../../../mappers/file-extension.mapper';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import styles from './styles';
 import modeEnum from '../../../enums/mode.enum';
 import { Cancel } from '@material-ui/icons';
+import MainContext from '../MessagesMain/MessagesMainContext';
 
 const AttachmentLinkComponent = (props) => {
   const { name, size, mimetype, ref } = props.attachment;
   const { mode, remove } = props;
-  const [downloadError, setDownloadError] = useState('');
-  const classes = useStyles({ isFileUpload });
-  const isFileUpload = mode === modeEnum.FILE_UPLOAD;
+  const [error, setError] = useState('');
+  const classes = useStyles({ isEditionOrUpload });
+  const isEditionOrUpload = mode === modeEnum.FILE_UPLOAD || mode === modeEnum.EDITION;
 
   const formatFileSize = (size) => (size / 1024).toFixed(2);
 
   const onLinkClick = (e) => {
-    if (!isFileUpload) {
+    if (!isEditionOrUpload) {
       e.preventDefault();
       downloadAttachmentFile();
     }
   };
 
   const onRemoveAttachmentClick = () => {
-    remove(name);
+    mode === modeEnum.EDITION ? removeFromServer() : remove(name);
+  };
+
+  const removeFromServer = async () => {
+    try {
+      const response = parseAxiosResponse(await requestService('deleteattachment', { ref }));
+      const removedAttachmentRef = response.data.ref;
+      if (removedAttachmentRef === ref) {
+        remove(name);
+      }
+    } catch (error) {
+      setError(parseErrorResponse(error) || 'Something went wrong on the way.');
+    }
   };
 
   const downloadAttachmentFile = async () => {
@@ -35,7 +53,7 @@ const AttachmentLinkComponent = (props) => {
       const response = await requestFileContent('getattachment', { ref });
       performDownload(response);
     } catch (error) {
-      setDownloadError(error.msg);
+      setError(error.msg);
     }
   };
 
@@ -53,15 +71,15 @@ const AttachmentLinkComponent = (props) => {
     <Fragment>
       <Typography className={classes.root} onClick={onLinkClick}>
         <span>{linkIcon}</span>
-        <span className={classes.linkText}>{isFileUpload ? <span>{name}</span> : <a href="#">{name}</a>}</span>
+        <span className={classes.linkText}>{isEditionOrUpload ? <span>{name}</span> : <a href="#">{name}</a>}</span>
         {size && <span className={classes.fileSize}>({formatFileSize(size)} Kb)</span>}
       </Typography>
-      {isFileUpload ? <Cancel onClick={onRemoveAttachmentClick} className={classes.cancel}></Cancel> : ''}
-      <Dialog open={Boolean(downloadError)}>
+      {isEditionOrUpload ? <Cancel onClick={onRemoveAttachmentClick} className={classes.cancel}></Cancel> : ''}
+      <Dialog open={Boolean(error)}>
         <CustomNotification
-          linkCallback={() => setDownloadError('')}
+          linkCallback={() => setError('')}
           linkMessage={'Close this window.'}
-          message={downloadError}
+          message={error}
           type={'E'}
         ></CustomNotification>
       </Dialog>

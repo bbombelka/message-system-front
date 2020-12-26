@@ -11,9 +11,9 @@ export const prepareFormData = (params) => {
   for (const key in params) {
     const currentValue = params[key];
     const hasFileContent = Array.isArray(currentValue) && currentValue.some((item) => isFileObject(item));
-
-    hasFileContent ? currentValue.forEach((item) => formData.append(key, item)) : formData.append(key, params[key]);
+    hasFileContent ? currentValue.forEach((item) => formData.append(key, item)) : formData.append(key, currentValue);
   }
+
   return formData;
 };
 

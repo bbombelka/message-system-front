@@ -1,30 +1,36 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import { AttachFile } from '@material-ui/icons';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import AttachmentsArea from '../AttachmentsArea/AttachmentsArea';
-import modeEnum from '../../../enums/mode.enum';
 import mimeTypeEnum from '../../../enums/mime-type.enum';
 import { config } from '../../../config';
 import errorsEnum from '../../../enums/errors.enum';
 import { isFileObject } from '../../../helpers/common.helper';
 import { usePrevious } from '../../../hooks/hooks';
+import modeEnum from '../../../enums/mode.enum';
+import MainContext from '../MessagesMain/MessagesMainContext';
 
-export default function FileUpload({ files, setFiles, error, setError }) {
+export default function FileUpload(props) {
+  const { files, setFiles, error, setError, removeAttachments } = props;
   const classes = useStyles();
   const fileInput = useRef();
   const previousFiles = usePrevious(files);
+  const { setMode } = useContext(MainContext);
 
   useEffect(() => {
     if (previousFiles?.length > files.length) {
       setError('');
     }
+    if (files.length === 0) {
+      setMode(modeEnum.INTERACTION);
+    }
   }, [files]);
 
   const onInput = () => {
     const { acceptedFiles = [], error = '' } = validateAttachments();
-
+    setMode(modeEnum.FILE_UPLOAD);
     setError(error);
     setFiles((prevVal) => [...prevVal, ...acceptedFiles]);
   };
@@ -61,16 +67,6 @@ export default function FileUpload({ files, setFiles, error, setError }) {
     };
   };
 
-  const removeAttachment = (name, options = {}) => {
-    const { bulk } = options;
-
-    if (bulk) {
-      return setFiles([]);
-    }
-
-    setFiles(files.filter((file) => file.name !== name));
-  };
-
   return (
     <div className={classes.root}>
       <div>
@@ -92,12 +88,7 @@ export default function FileUpload({ files, setFiles, error, setError }) {
 
       {files.length ? (
         <div>
-          <AttachmentsArea
-            attachments={files}
-            margin={'12px 0'}
-            mode={modeEnum.FILE_UPLOAD}
-            remove={removeAttachment}
-          ></AttachmentsArea>
+          <AttachmentsArea attachments={files} margin={'12px 0'} remove={removeAttachments}></AttachmentsArea>
         </div>
       ) : (
         ''
