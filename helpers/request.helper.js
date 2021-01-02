@@ -1,10 +1,14 @@
 import axios from 'axios';
 import { config } from '../config';
 import { isFileObject } from '../helpers/common.helper';
+import errorCodesEnum from '../enums/errorCodes.enum';
+import { useHistory } from 'react-router-dom';
 
 const headers = {
   JSON: 'application/json',
 };
+
+const unprotectedRoutes = ['login', 'logout', 'renewtoken'];
 
 export const prepareFormData = (params) => {
   const formData = new FormData();
@@ -17,27 +21,52 @@ export const prepareFormData = (params) => {
   return formData;
 };
 
-export const requestService = (service, requestParams, requestConfig) => {
-  const token = localStorage.getItem('accessToken');
+export const requestService = (service, requestParams) => {
+  const requestConfig = unprotectedRoutes.includes(service)
+    ? {}
+    : {
+        headers: {
+          Authorization: 'Bearer ' + sessionStorage.getItem('accessToken'),
+          'Content-Type': headers.JSON,
+        },
+      };
 
-  return axios.post(config.SERVER_URL + service, requestParams, {
-    headers: {
-      Authorization: 'Bearer ' + token,
-      'Content-Type': headers.JSON,
-    },
-  });
+  return axios.post(config.SERVER_URL + service, requestParams, requestConfig);
 };
 
 export const parseAxiosResponse = (response) => response.data;
 
-export const parseErrorResponse = (error) => {
-  if (error?.response?.data) {
-    return error.response.data.msg;
+export const getErrorMessageResponse = (error) => {
+  return error?.response?.data?.msg;
+};
+
+export const getErrorCode = (error) => {
+  return error?.response?.data?.code;
+};
+
+export const errorHandler = async (options) => {
+  const { error, repeatedCallback, repeatedCallbackParams, errorCallback, errorMessage = null } = options;
+  const errorCode = getErrorCode(error) || error.code;
+
+  if (errorCode === errorCodesEnum.EXPIRED_ACCESS_TOKEN) {
+    try {
+      await renewToken();
+      return repeatedCallback(repeatedCallbackParams);
+    } catch (err) {
+      if (err.message === errorCodesEnum.EXPIRED_REFRESH_TOKEN) {
+        sessionStorage.clear();
+        return console.log('token is not longer valid log out');
+      }
+    }
   }
+
+  const errorCallbackParams = errorMessage ? getErrorMessageResponse(error) || error.msg : errorMessage;
+
+  errorCallback(errorCallbackParams);
 };
 
 export const requestFileContent = async (service, requestParams) => {
-  const token = localStorage.getItem('accessToken');
+  const token = sessionStorage.getItem('accessToken');
 
   return fetch(config.SERVER_URL + service, {
     method: 'POST',
@@ -57,4 +86,15 @@ export const requestFileContent = async (service, requestParams) => {
       resolve(await res.blob());
     });
   });
+};
+
+const renewToken = async () => {
+  try {
+    const { data } = parseAxiosResponse(
+      await requestService('renewToken', { token: sessionStorage.getItem('refreshToken') })
+    );
+    sessionStorage.setItem('accessToken', data.accessToken);
+  } catch (error) {
+    throw new Error(getErrorCode(error));
+  }
 };

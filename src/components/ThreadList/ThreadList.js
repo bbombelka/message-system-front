@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Card } from '@material-ui/core';
 import boolEnum from '../../../enums/bool.enum';
 import ThreadItem from '../ThreadItem/ThreadItem';
-import { requestService, parseAxiosResponse } from '../../../helpers/request.helper';
+import { requestService, parseAxiosResponse, errorHandler } from '../../../helpers/request.helper';
 import { config } from '../../../config';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import errorsEnum from '../../../enums/errors.enum';
@@ -33,7 +33,12 @@ class ThreadList extends Component {
       const response = parseAxiosResponse(await requestService('getthreads', params));
       this.onSuccessfulThreadFetch(response);
     } catch (error) {
-      this.onFailedThreadFetch();
+      const errorHandlerOptions = {
+        error,
+        repeatedCallback: this.fetchThreadData,
+        errorCallback: this.onFailedThreadFetch,
+      };
+      errorHandler(errorHandlerOptions);
     }
   };
 

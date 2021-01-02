@@ -12,6 +12,8 @@ import regexEnum from '../../../enums/regex.enum';
 import { withRouter } from 'react-router';
 import { Message, Visibility, VisibilityOff, VpnKey } from '@material-ui/icons/';
 import { withStyles } from '@material-ui/core/styles';
+import { requestService, getErrorMessageResponse, parseAxiosResponse } from '../../../helpers/request.helper';
+import errorCodesEnum from '../../../enums/errorCodes.enum';
 
 class LoginFormComponent extends Component {
   state = {
@@ -26,6 +28,20 @@ class LoginFormComponent extends Component {
     requestNotificationMessage: '',
     showPassword: false,
     showRequestNotification: false,
+  };
+
+  componentDidMount = () => {
+    if (sessionStorage.getItem('isLoggedIn')) {
+      this.proceedToMessages();
+    }
+    if (this.props.history.location.state?.from === '/messages') {
+      this.onLogout();
+    }
+  };
+
+  onLogout = () => {
+    this.props.history.replace({ pathname: '/', state: {} });
+    setTimeout(() => this.props.toggleFullscreenLoader(), 500);
   };
 
   onChange = (stateProp) => (event) => {
@@ -119,7 +135,7 @@ class LoginFormComponent extends Component {
 
   makeLoginRequest = async (data) => {
     try {
-      const response = await axios.post(config.SERVER_URL + 'login', data);
+      const response = parseAxiosResponse(await requestService('login', data));
       this.onSuccessfulResponse(response);
     } catch (error) {
       this.onErrorResponse(error);
@@ -136,25 +152,41 @@ class LoginFormComponent extends Component {
   };
 
   onSuccessfulResponse = (response) => {
-    const requestNotificationMessage = copyEnum.GENERIC_LOGIN_SUCCESS;
-    this.persistWebTokens(response.data.data);
-    this.showNotification({ requestNotificationMessage }, () => {
+    this.persistWebStorageData(response.data);
+
+    this.showNotification({ requestNotificationMessage: copyEnum.GENERIC_LOGIN_SUCCESS }, () => {
       this.setState({ loginTextFieldIsDisabled: true }, () => setTimeout(this.proceedToMessages, 500));
     });
   };
 
-  persistWebTokens = (tokens) => {
-    Object.entries(tokens).forEach(([key, value]) => localStorage.setItem(key, value));
+  persistWebStorageData = (tokens) => {
+    const parseJwt = (token) => {
+      try {
+        return JSON.parse(atob(token.split('.')[1]));
+      } catch (e) {
+        return null;
+      }
+    };
+
+    const { name } = parseJwt(tokens.accessToken);
+
+    const items = {
+      isLoggedIn: true,
+      login: this.state.loginTextFieldValue,
+      name,
+    };
+
+    Object.entries({ ...tokens, ...items }).forEach(([key, value]) => sessionStorage.setItem(key, value));
   };
 
   proceedToMessages = () => {
-    this.props.showFullscreenLoader();
+    this.props.toggleFullscreenLoader();
     this.props.history.push('/messages');
   };
 
   onErrorResponse = (error) => {
-    const errorResponse = error?.response?.data || {};
-    const requestNotificationMessage = errorResponse.msg || errorsEnum.GENERIC_LOGIN_ERROR;
+    const errorResponse = getErrorMessageResponse(error);
+    const requestNotificationMessage = errorResponse || errorsEnum.GENERIC_LOGIN_ERROR;
 
     this.showNotification(
       {

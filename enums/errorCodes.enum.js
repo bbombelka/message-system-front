@@ -1,0 +1,5 @@
+export default {
+  ALREADY_LOGGED_IN: '001',
+  EXPIRED_ACCESS_TOKEN: '011',
+  EXPIRED_REFRESH_TOKEN: '015',
+};

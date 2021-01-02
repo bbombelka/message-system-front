@@ -6,8 +6,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import {
   requestService,
   parseAxiosResponse,
-  parseErrorResponse,
+  getErrorMessageResponse,
   prepareFormData,
+  errorHandler,
 } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 import styles from './styles';
@@ -56,24 +57,45 @@ const TextEditor = (props) => {
     }
   }, [editedMessage]);
 
-  const makeRequest = async () => {
-    const { params, service } = getRequestParams();
+  const requestSendMessage = async (prevMessageReponse = null) => {
+    const params = getRequestParams();
+    let messageReponse;
 
     try {
       setIsLoading(true);
-      const response = parseAxiosResponse(await requestService(service, params));
-
-      if (editedMessage) {
-        return onSuccessfulEditRequest(response.data);
-      }
-
-      const uploadFileResponse = attachments.length ? await uploadFiles(response) : '';
+      messageReponse = prevMessageReponse || parseAxiosResponse(await requestService('sendmessage', params)); // *(1)
+      const uploadFileResponse = attachments.length ? await uploadFiles(messageReponse) : '';
       const [errorMessage = '', successMessage = ''] = getServerMessages(uploadFileResponse);
-
-      onSuccessfulSendRequest(response, { errorMessage, successMessage });
+      onSuccessfulSendRequest(messageReponse, { errorMessage, successMessage, uploadFileResponse });
     } catch (error) {
-      const message = parseErrorResponse(error);
-      setSnackbarMessage(message || 'Something went wrong on the way');
+      const options = {
+        error,
+        repeatedCallbackParams: messageReponse,
+        repeatedCallback: requestSendMessage,
+        errorCallback: setSnackbarMessage,
+        errorMessage: 'Something went wrong on the way',
+      };
+      errorHandler(options);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const requestEditMessage = async () => {
+    const params = getRequestParams();
+
+    try {
+      setIsLoading(true);
+      const response = parseAxiosResponse(await requestService('editmessage', params));
+      onSuccessfulEditRequest(response.data);
+    } catch (error) {
+      const options = {
+        error,
+        repeatedCallback: requestEditMessage,
+        errorCallback: setSnackbarMessage,
+        errorMessage: 'Something went wrong on the way',
+      };
+      errorHandler(options);
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +108,7 @@ const TextEditor = (props) => {
 
       return parseAxiosResponse(await requestService('uploadattachment', params)).data;
     } catch (error) {
-      return parseErrorResponse(error);
+      return getErrorMessageResponse(error);
     }
   };
 
@@ -98,13 +120,11 @@ const TextEditor = (props) => {
   };
 
   const getRequestParams = () => {
-    const getWrapper = (params, service) => ({ params, service });
-
     if (editedMessage) {
-      return getWrapper({ ref: editedMessage.ref, text: message }, 'editmessage');
+      return { ref: editedMessage.ref, text: message };
     }
     const conditionalParams = thread ? { ref: thread.ref, reply: bool.TRUE } : { reply: bool.FALSE };
-    return getWrapper({ ...conditionalParams, title, text: `<p>${message}</p>` }, 'sendmessage');
+    return { ...conditionalParams, title, text: `<p>${message}</p>` };
   };
 
   const onSuccessfulEditRequest = (data) => {
@@ -114,7 +134,10 @@ const TextEditor = (props) => {
     setSnackbarMessage('Your message has been successfuly edited.');
   };
 
-  const onSuccessfulSendRequest = (response, { errorMessage, successMessage }) => {
+  const onSuccessfulSendRequest = (response, { errorMessage, successMessage, uploadFileResponse }) => {
+    if (uploadFileResponse) {
+      mergeAttachmentData(response.data.messages[0], uploadFileResponse);
+    }
     thread ? onRepliedInThread(response.data, { ref: thread.ref }) : onNewThreadStarted(response);
     const snackbarMessage = `Your message has been sent. ${successMessage} ${
       errorMessage ? 'There were problem with some uploaded files.' : ''
@@ -125,6 +148,11 @@ const TextEditor = (props) => {
       return setMessage('');
     }
     setShowTextEditor(false);
+  };
+
+  const mergeAttachmentData = (message, uploadedAttachments) => {
+    const attachments = uploadedAttachments.map(({ name, size, mimetype, ref }) => ({ name, size, mimetype, ref }));
+    message.attach.push(...attachments);
   };
 
   const removeAttachments = (name, options = {}) => {
@@ -299,7 +327,7 @@ const TextEditor = (props) => {
                 </div>
                 <div>
                   <ButtonWithLoader
-                    click={makeRequest}
+                    click={editedMessage ? requestEditMessage : () => requestSendMessage()}
                     disabled={isSendButtonDisabled}
                     icon={<Send />}
                     isLoading={isLoading}
@@ -320,3 +348,9 @@ const TextEditor = (props) => {
 const useStyles = makeStyles(styles);
 
 export default TextEditor;
+
+// - - -
+// *(1) Idea here is to handle least probable situation where message is being sent with files during which
+// send message call is successful whereas upload file request fails on expired token.
+// In this case, with the whole function repeated there would be another send message
+// call resulting in one excessive message in the DB since the first call was successful.

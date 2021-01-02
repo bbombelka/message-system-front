@@ -7,14 +7,14 @@ import {
   requestFileContent,
   requestService,
   parseAxiosResponse,
-  parseErrorResponse,
+  getErrorMessageResponse,
+  errorHandler,
 } from '../../../helpers/request.helper';
 import extension from '../../../mappers/file-extension.mapper';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import styles from './styles';
 import modeEnum from '../../../enums/mode.enum';
 import { Cancel } from '@material-ui/icons';
-import MainContext from '../MessagesMain/MessagesMainContext';
 
 const AttachmentLinkComponent = (props) => {
   const { name, size, mimetype, ref } = props.attachment;
@@ -44,7 +44,13 @@ const AttachmentLinkComponent = (props) => {
         remove(name);
       }
     } catch (error) {
-      setError(parseErrorResponse(error) || 'Something went wrong on the way.');
+      const options = {
+        error,
+        repeatedCallback: removeFromServer,
+        errorCallback: setError,
+        errorMessage: 'Something went wrong on the way',
+      };
+      errorHandler(options);
     }
   };
 
@@ -53,7 +59,13 @@ const AttachmentLinkComponent = (props) => {
       const response = await requestFileContent('getattachment', { ref });
       performDownload(response);
     } catch (error) {
-      setError(error.msg);
+      const options = {
+        error,
+        repeatedCallback: downloadAttachmentFile,
+        errorCallback: setError,
+        errorMessage: 'Something went wrong on the way',
+      };
+      errorHandler(options);
     }
   };
 

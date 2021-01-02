@@ -10,11 +10,14 @@ import {
   Search as SearchIcon,
 } from '@material-ui/icons';
 import styles from './styles';
+import { requestService } from '../../../helpers/request.helper';
+import { useHistory, useLocation } from 'react-router-dom';
 
-const MainBar = ({ toggleToolbar }) => {
+const MainBar = ({ toggleToolbar, toggleFullscreenLoader }) => {
   const classes = useStyles();
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-
+  const history = useHistory();
+  const location = useLocation();
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const handleMobileMenuClose = () => {
@@ -23,6 +26,16 @@ const MainBar = ({ toggleToolbar }) => {
 
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
+  };
+
+  const requestLogout = async () => {
+    const login = sessionStorage.getItem('login');
+    try {
+      toggleFullscreenLoader();
+      sessionStorage.clear();
+      requestService('logout', { login });
+      history.push('/', { from: location.pathname });
+    } catch (error) {}
   };
 
   const mobileMenuId = 'primary-search-account-menu-mobile';
@@ -96,12 +109,7 @@ const MainBar = ({ toggleToolbar }) => {
             >
               <AccountCircle />
             </IconButton>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              onClick={() => console.log('take to profile page')}
-              color="inherit"
-            >
+            <IconButton edge="end" aria-label="account of current user" onClick={requestLogout} color="inherit">
               <ExitToApp />
             </IconButton>
           </div>

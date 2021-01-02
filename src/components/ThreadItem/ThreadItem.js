@@ -4,7 +4,12 @@ import { Collapse, Divider, Paper } from '@material-ui/core';
 import MessageItem from '../MessageItem/MessageItem';
 import ThreadBar from '../ThreadBar/ThreadBar';
 import { config } from '../../../config';
-import { requestService, parseAxiosResponse, parseErrorResponse } from '../../../helpers/request.helper';
+import {
+  errorHandler,
+  requestService,
+  parseAxiosResponse,
+  getErrorMessageResponse,
+} from '../../../helpers/request.helper';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import iconEnum from '../Icon/Icon.enum';
 import bool from '../../../enums/bool.enum';
@@ -32,8 +37,13 @@ class ThreadItem extends Component {
       const response = parseAxiosResponse(await requestService('getmessages', params));
       this.onSuccessfulMessageFetch(response.data);
     } catch (error) {
-      const message = parseErrorResponse(error);
-      this.onFailedFetch(message);
+      const options = {
+        error,
+        repeatedCallback: this.fetchMessages,
+        errorCallback: this.onFailedFetch,
+        errorMessage: true,
+      };
+      errorHandler(options);
     }
   };
 
@@ -92,8 +102,14 @@ class ThreadItem extends Component {
       const response = parseAxiosResponse(await requestService('getmessages', params));
       this.onSuccessfulLoadMoreMessagesFetch(response.data);
     } catch (error) {
-      const message = parseErrorResponse(error);
-      this.onFailedMoreMessageFetch(message);
+      const options = {
+        error,
+        repeatedCallback: this.fetchMoreMessages,
+        repeatedCallbackParams: params,
+        errorCallback: this.onFailedMoreMessageFetch,
+        errorMessage: true,
+      };
+      errorHandler(options);
     }
   };
 
@@ -166,6 +182,7 @@ class ThreadItem extends Component {
 
   onThreadBarClick = () => {
     const { ref, selected } = this.props.thread;
+    this.setState({ fetchError: null });
     selected ? this.props.select(ref) : this.fetchMessages();
   };
 

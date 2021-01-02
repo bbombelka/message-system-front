@@ -7,6 +7,9 @@ import { makeStyles } from '@material-ui/core/styles';
 
 export const App = () => {
   const [showLoader, setShowLoader] = useState(false);
+  const [isLoggedIn] = useState(JSON.parse(sessionStorage.getItem('isLoggedIn')));
+  const [user, setUser] = useState(null);
+
   const classes = useStyles();
   const toggleFullscreenLoader = (options) => {
     const value = options ? options.showLoader : !showLoader;
@@ -18,11 +21,16 @@ export const App = () => {
       <Router>
         <LoaderFullscreen open={showLoader} />
         <Switch>
-          <Route path="/" render={() => <MessagesMain toggleFullscreenLoader={toggleFullscreenLoader} />} />
+          <Route
+            path="/messages"
+            render={() => <MessagesMain user={user} toggleFullscreenLoader={toggleFullscreenLoader} />}
+          />
           <Route
             exact
-            path="/s" // switch to "/" to start with login screen
-            render={() => <LoginForm showFullscreenLoader={toggleFullscreenLoader} />}
+            path="/" // switch to "/" to start with login screen
+            render={() => (
+              <LoginForm setUser={setUser} isLoggedIn={isLoggedIn} toggleFullscreenLoader={toggleFullscreenLoader} />
+            )}
           />
         </Switch>
       </Router>

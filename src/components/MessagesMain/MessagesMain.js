@@ -5,7 +5,7 @@ import MessageToolbar from '../MessageToolbar/MessageToolbar';
 import TextEditor from '../TextEditor/TextEditor';
 import { Container, Snackbar, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { requestService, parseAxiosResponse, parseErrorResponse } from '../../../helpers/request.helper';
+import { requestService, parseAxiosResponse, errorHandler } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 import MainContext from './MessagesMainContext';
 import modeEnum from '../../../enums/mode.enum';
@@ -99,8 +99,14 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
         ? removeItems(data.ref, data.total)
         : setSnackbarMessage("Selected threads have been sent to user's email address");
     } catch (error) {
-      const message = parseErrorResponse(error);
-      setSnackbarMessage(message || 'Something went wrong on the way');
+      const options = {
+        error,
+        repeatedCallbackParams: service,
+        repeatedCallback: makeRequest,
+        errorCallback: setSnackbarMessage,
+        errorMessage: 'Something went wrong on the way',
+      };
+      errorHandler(options);
     } finally {
       threads.current.props.toggleFullscreenLoader();
     }
@@ -185,7 +191,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   return (
     <div>
       <MainContext.Provider value={{ editMessage, mode, setMode }}>
-        <MainBar toggleToolbar={toggleToolbar} />
+        <MainBar toggleToolbar={toggleToolbar} toggleFullscreenLoader={toggleFullscreenLoader} />
 
         <MessageToolbar
           displayed={displayMessageToolbar}
@@ -212,7 +218,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
             setShowTextEditor={setShowTextEditor}
             thread={selectedThread}
           />
-          <Typography>Your Current Messages</Typography>
+          <Typography className>Your Current Messages</Typography>
           <ThreadList
             mode={mode}
             messageRef={messages}
@@ -252,6 +258,14 @@ const useStyles = makeStyles(() => ({
     color: 'white',
     fontSize: '14px',
     padding: '12px 72px',
+  },
+  threadListTitle: {
+    fontSize: '20px',
+    margin: '24px',
+    textTransform: 'uppercase',
+    lineHeight: '24px',
+    textAlign: 'center',
+    fontFamily: 'monospace',
   },
 }));
 

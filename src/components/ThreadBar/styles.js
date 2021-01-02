@@ -52,6 +52,7 @@ export default function (theme) {
       justifyContent: 'center',
     },
     loader: {
+      color: 'rgba(100, 0, 0, 0.87)',
       position: 'absolute',
       top: 'calc(50% - 24px)',
       left: 'calc(50% - 24px)',
