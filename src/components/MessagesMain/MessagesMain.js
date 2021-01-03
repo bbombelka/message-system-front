@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import ThreadList from '../ThreadList/ThreadList';
 import MainBar from '../MainBar/MainBar';
 import MessageToolbar from '../MessageToolbar/MessageToolbar';
 import TextEditor from '../TextEditor/TextEditor';
 import { Container, Snackbar, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import { requestService, parseAxiosResponse, errorHandler } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 import MainContext from './MessagesMainContext';
 import modeEnum from '../../../enums/mode.enum';
+import styles from './styles';
 
 const MessagesMain = ({ toggleFullscreenLoader }) => {
-  const classes = useStyles();
+  const classes = useStyle();
   const [displayMessageToolbar, setDisplayMessageToolbar] = useState(false);
   const [isMessage, setIsMessage] = useState(false);
   const [mode, setMode] = useState(modeEnum.INTERACTION);
@@ -21,6 +23,8 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
 
   const threads = useRef(null);
   const messages = useRef(null);
+  const history = useHistory();
+  const location = useLocation();
   const isToolbarVertical = window.innerWidth > 1057;
   const markMode = mode === modeEnum.MARK_THREAD || mode === modeEnum.MARK_MESSAGE;
   // add resize listener
@@ -42,6 +46,16 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   useEffect(() => {
     !editedMessage && setMode(modeEnum.INTERACTION);
   }, [editedMessage]);
+
+  const logout = () => {
+    const login = sessionStorage.getItem('login');
+
+    toggleFullscreenLoader();
+    sessionStorage.clear();
+
+    requestService('logout', { login });
+    history.push('/', { from: location.pathname });
+  };
 
   const toggleToolbar = (bool) => {
     if (markMode) return;
@@ -191,8 +205,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   return (
     <div>
       <MainContext.Provider value={{ editMessage, mode, setMode }}>
-        <MainBar toggleToolbar={toggleToolbar} toggleFullscreenLoader={toggleFullscreenLoader} />
-
+        <MainBar toggleToolbar={toggleToolbar} logout={logout} />
         <MessageToolbar
           displayed={displayMessageToolbar}
           vertical={isToolbarVertical}
@@ -218,7 +231,9 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
             setShowTextEditor={setShowTextEditor}
             thread={selectedThread}
           />
-          <Typography className>Your Current Messages</Typography>
+          <Typography variant="h2" className={classes.threadListHeader}>
+            Your Current Messages
+          </Typography>
           <ThreadList
             mode={mode}
             messageRef={messages}
@@ -245,28 +260,6 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   );
 };
 
-const useStyles = makeStyles(() => ({
-  containerRoot: {
-    padding: '0',
-  },
-  snackbar: {
-    bottom: 90,
-  },
-  snackbarContent: {
-    backgroundColor: 'rgba(100,0,0,0.87)',
-    borderRadius: '6px',
-    color: 'white',
-    fontSize: '14px',
-    padding: '12px 72px',
-  },
-  threadListTitle: {
-    fontSize: '20px',
-    margin: '24px',
-    textTransform: 'uppercase',
-    lineHeight: '24px',
-    textAlign: 'center',
-    fontFamily: 'monospace',
-  },
-}));
+const useStyle = makeStyles(styles);
 
 export default MessagesMain;

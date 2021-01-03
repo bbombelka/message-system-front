@@ -1,132 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { AppBar, IconButton, InputBase, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core/';
-import {
-  AccountCircle,
-  ExitToApp,
-  Mail,
-  Menu as MenuIcon,
-  MoreVert as MoreIcon,
-  Search as SearchIcon,
-} from '@material-ui/icons';
+import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core/';
+import { ExitToApp, Mail } from '@material-ui/icons';
 import styles from './styles';
-import { requestService } from '../../../helpers/request.helper';
-import { useHistory, useLocation } from 'react-router-dom';
 
-const MainBar = ({ toggleToolbar, toggleFullscreenLoader }) => {
+const MainBar = ({ toggleToolbar, logout }) => {
   const classes = useStyles();
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-  const history = useHistory();
-  const location = useLocation();
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-  const handleMobileMenuClose = () => {
-    setMobileMoreAnchorEl(null);
-  };
-
-  const handleMobileMenuOpen = (event) => {
-    setMobileMoreAnchorEl(event.currentTarget);
-  };
-
-  const requestLogout = async () => {
-    const login = sessionStorage.getItem('login');
-    try {
-      toggleFullscreenLoader();
-      sessionStorage.clear();
-      requestService('logout', { login });
-      history.push('/', { from: location.pathname });
-    } catch (error) {}
-  };
-
-  const mobileMenuId = 'primary-search-account-menu-mobile';
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem onClick={() => console.log('take to profile page')}>
-        <IconButton
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-          className={classes.bordo}
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
-      <MenuItem onClick={() => console.log('log out')}>
-        <IconButton className={classes.bordo}>
-          <ExitToApp />
-        </IconButton>
-        <p>Log out</p>
-      </MenuItem>
-    </Menu>
-  );
+  const [userName] = useState(sessionStorage.getItem('name'));
 
   return (
     <div className={classes.grow}>
       <AppBar classes={{ root: classes.bordoBackground }} position="static">
         <Toolbar>
-          <IconButton
-            edge="start"
-            className={classes.menuButton}
-            color="inherit"
-            aria-label="open drawer"
-            onClick={() => toggleToolbar()}
-          >
+          <IconButton edge="start" className={classes.menuButton} color="inherit" onClick={() => toggleToolbar()}>
             <Mail />
           </IconButton>
           <Typography className={classes.title} variant="h6" noWrap>
-            Welcome Barty-Boy !
+            Hello {userName} !
           </Typography>
-          {/* <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon />
-            </div>
-            <InputBase
-              placeholder="Search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </div> */}
-          <div className={classes.grow} />
-          <div className={classes.sectionDesktop}>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              onClick={() => console.log('take to profile page')}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-            <IconButton edge="end" aria-label="account of current user" onClick={requestLogout} color="inherit">
-              <ExitToApp />
-            </IconButton>
-          </div>
-          <div className={classes.sectionMobile}>
-            <IconButton
-              aria-label="show more"
-              aria-controls={mobileMenuId}
-              aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
-              color="inherit"
-            >
-              <MoreIcon />
-            </IconButton>
-          </div>
+          <IconButton edge="end" classes={{ root: classes.logout }} onClick={logout} color="inherit">
+            <ExitToApp />
+          </IconButton>
         </Toolbar>
       </AppBar>
-      {renderMobileMenu}
     </div>
   );
 };

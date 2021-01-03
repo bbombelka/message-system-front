@@ -2,7 +2,6 @@ import axios from 'axios';
 import { config } from '../config';
 import { isFileObject } from '../helpers/common.helper';
 import errorCodesEnum from '../enums/errorCodes.enum';
-import { useHistory } from 'react-router-dom';
 
 const headers = {
   JSON: 'application/json',

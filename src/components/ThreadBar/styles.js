@@ -61,6 +61,7 @@ export default function (theme) {
       opacity: '.5',
     },
     checkBox: {
+      padding: '3px',
       color: 'rgba(100,0,0,0.87)',
       '& checked': {
         color: 'rgba(100,0,0,0.87)',

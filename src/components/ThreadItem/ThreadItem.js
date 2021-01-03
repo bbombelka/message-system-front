@@ -233,7 +233,7 @@ class ThreadItem extends Component {
           type={type}
         />
         <div className={classes.message}>
-          <Collapse in={selected}>
+          <Collapse in={selected} timeout={1000}>
             <Paper className={classes.expanderContent}>
               {messageContent.messages.map((message, index) => {
                 const isLast = messageContent.length - 1 === index;

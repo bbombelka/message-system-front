@@ -7,14 +7,14 @@ export default function LoaderFullscreen({ open }) {
 
   return (
     <Backdrop open={open} className={classes.backdrop}>
-      <CircularProgress />
+      <CircularProgress color="inherit" />
     </Backdrop>
   );
 }
 
 const useStyles = makeStyles(() => ({
   backdrop: {
-    zIndex: 1,
-    color: 'blue',
+    zIndex: 3,
+    color: 'rgba(100,0,0,0.87)',
   },
 }));

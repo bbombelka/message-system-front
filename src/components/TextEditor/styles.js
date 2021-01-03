@@ -20,7 +20,10 @@ export default function (theme) {
     },
     iconColumn: {
       width: '72px',
-      height: '72px',
+      height: '60px',
+      [theme.breakpoints.up('md')]: {
+        height: '72px',
+      },
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -46,14 +49,17 @@ export default function (theme) {
     },
     header: {
       padding: '12px',
-      lineHeight: '48px',
+      lineHeight: '36px',
+      [theme.breakpoints.up('md')]: {
+        lineHeight: '48px',
+      },
       fontWeight: 'bold',
     },
     paddingBottom: {
       paddingBottom: '12px',
     },
     root: {
-      margin: '24px 0',
+      margin: '24px 0 0',
       position: 'sticky',
       top: 0,
       zIndex: 2,

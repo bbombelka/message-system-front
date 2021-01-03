@@ -245,7 +245,7 @@ const TextEditor = (props) => {
         </div>
         <Typography classes={{ root: classes.header }}>{headerText}</Typography>
       </Card>
-      <Collapse in={showTextEditor}>
+      <Collapse in={showTextEditor} timeout={1000}>
         <Paper classes={{ root: classes.paddingBottom }}>
           <Paper classes={{ root: classes.expanderContent }}>
             <div className={classes.inputContainer}>

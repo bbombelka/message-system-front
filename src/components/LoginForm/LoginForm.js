@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Avatar, Card, CardHeader } from '@material-ui/core';
 import { Container, IconButton, OutlinedInput } from '@material-ui/core';
 import { InputAdornment, InputLabel, FormControl, TextField } from '@material-ui/core';
@@ -12,8 +11,13 @@ import regexEnum from '../../../enums/regex.enum';
 import { withRouter } from 'react-router';
 import { Message, Visibility, VisibilityOff, VpnKey } from '@material-ui/icons/';
 import { withStyles } from '@material-ui/core/styles';
-import { requestService, getErrorMessageResponse, parseAxiosResponse } from '../../../helpers/request.helper';
-import errorCodesEnum from '../../../enums/errorCodes.enum';
+import {
+  requestService,
+  getErrorMessageResponse,
+  parseAxiosResponse,
+  prepareFormData,
+} from '../../../helpers/request.helper';
+import styles from './styles';
 
 class LoginFormComponent extends Component {
   state = {
@@ -113,29 +117,21 @@ class LoginFormComponent extends Component {
   };
 
   onLogInButtonClick = () => {
-    const data = this.getFormData();
     this.setState(
       {
         isMakingRequest: true,
         loginButtonIsDisabled: true,
       },
-      () => this.makeLoginRequest(data)
+      () => this.makeLoginRequest()
     );
   };
 
-  getFormData = () => {
+  makeLoginRequest = async () => {
     const { loginTextFieldValue, passwordTextFieldValue } = this.state;
-    const data = new FormData();
+    const params = prepareFormData({ login: loginTextFieldValue, pass: passwordTextFieldValue });
 
-    data.append('login', loginTextFieldValue);
-    data.append('pass', passwordTextFieldValue);
-
-    return data;
-  };
-
-  makeLoginRequest = async (data) => {
     try {
-      const response = parseAxiosResponse(await requestService('login', data));
+      const response = parseAxiosResponse(await requestService('login', params));
       this.onSuccessfulResponse(response);
     } catch (error) {
       this.onErrorResponse(error);
@@ -231,14 +227,18 @@ class LoginFormComponent extends Component {
     } = this.state;
 
     const { classes } = this.props;
+    const avatarClass = classes.avatar.concat(
+      isMakingRequest || showRequestNotification ? ' ' + classes.avatarBackground : ''
+    );
 
     return (
-      <Container maxWidth="sm">
+      <Container classes={{ root: classes.root }} maxWidth="sm">
         <Card>
           <CardHeader
+            classes={{ title: classes.header }}
             title="Welcome to Message System"
             avatar={
-              <Avatar>
+              <Avatar classes={{ root: avatarClass }}>
                 <Message />
               </Avatar>
             }
@@ -247,7 +247,7 @@ class LoginFormComponent extends Component {
             <div className={classes.loginFormItem}>
               <TextField
                 autoComplete="off"
-                classes={{ root: classes.width }}
+                classes={{ root: classes.input }}
                 id="login"
                 disabled={loginTextFieldIsDisabled}
                 error={Boolean(loginErrorText)}
@@ -262,11 +262,10 @@ class LoginFormComponent extends Component {
                 variant="outlined"
               />
             </div>
-            <div className={classes.loginFormItem}>
-              <FormControl variant="outlined">
+            <div>
+              <FormControl classes={{ root: classes.input }} variant="outlined">
                 <InputLabel htmlFor="password">Password</InputLabel>
                 <OutlinedInput
-                  classes={{ root: classes.width }}
                   labelWidth={70}
                   disabled={passwordTextFieldIsDisabled}
                   id="password"
@@ -314,26 +313,7 @@ class LoginFormComponent extends Component {
   }
 }
 
-const useStyles = () => ({
-  loginForm: {
-    display: 'flex',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  loginFormItem: {
-    display: 'flex',
-    justifyContent: 'center',
-    width: '75%',
-    margin: '12px',
-    position: 'relative',
-  },
-  width: {
-    width: '250px',
-  },
-  loginNotification: {
-    width: ' 75%',
-  },
-});
+const useStyles = () => styles;
 
 const LoginForm = withRouter(withStyles(useStyles)(LoginFormComponent));
 

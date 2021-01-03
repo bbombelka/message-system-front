@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { ContactMailOutlined, Edit, PersonOutline } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
-import { Checkbox, Typography } from '@material-ui/core';
+import { Paper, Checkbox, Typography } from '@material-ui/core';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import MainContext from '../MessagesMain/MessagesMainContext';
 import ThreadsContext from '../ThreadList/ThreadsContext';
@@ -39,6 +39,7 @@ const MessageItemAvatar = (props) => {
           {getLocaleDate(date)}
         </Typography>
       </div>
+
       {!isInternalMessage ? (
         <div className={classes.status}>
           <Typography component="h6" align="center" variant="caption">
