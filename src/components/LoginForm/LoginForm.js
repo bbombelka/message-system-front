@@ -11,13 +11,9 @@ import regexEnum from '../../../enums/regex.enum';
 import { withRouter } from 'react-router';
 import { Message, Visibility, VisibilityOff, VpnKey } from '@material-ui/icons/';
 import { withStyles } from '@material-ui/core/styles';
-import {
-  requestService,
-  getErrorMessageResponse,
-  parseAxiosResponse,
-  prepareFormData,
-} from '../../../helpers/request.helper';
+import { getErrorMessageResponse, prepareFormData } from '../../../helpers/request.helper';
 import styles from './styles';
+import Services from '../../Services';
 
 class LoginFormComponent extends Component {
   state = {
@@ -131,7 +127,7 @@ class LoginFormComponent extends Component {
     const params = prepareFormData({ login: loginTextFieldValue, pass: passwordTextFieldValue });
 
     try {
-      const response = parseAxiosResponse(await requestService('login', params));
+      const response = await Services.login(params);
       this.onSuccessfulResponse(response);
     } catch (error) {
       this.onErrorResponse(error);

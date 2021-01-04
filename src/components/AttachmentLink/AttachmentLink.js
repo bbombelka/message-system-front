@@ -3,18 +3,14 @@ import { Dialog, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { Attachment, InsertDriveFile, Image } from '@material-ui/icons';
 import mimeTypeEnum from '../../../enums/mime-type.enum';
-import {
-  requestFileContent,
-  requestService,
-  parseAxiosResponse,
-  getErrorMessageResponse,
-  errorHandler,
-} from '../../../helpers/request.helper';
+import { requestFileContent, errorHandler } from '../../../helpers/request.helper';
 import extension from '../../../mappers/file-extension.mapper';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import styles from './styles';
 import modeEnum from '../../../enums/mode.enum';
 import { Cancel } from '@material-ui/icons';
+import MainContext from '../MessagesMain/MessagesMainContext';
+import Services from '../../Services';
 
 const AttachmentLinkComponent = (props) => {
   const { name, size, mimetype, ref } = props.attachment;
@@ -22,6 +18,8 @@ const AttachmentLinkComponent = (props) => {
   const [error, setError] = useState('');
   const classes = useStyles({ isEditionOrUpload });
   const isEditionOrUpload = mode === modeEnum.FILE_UPLOAD || mode === modeEnum.EDITION;
+
+  const { logout } = useContext(MainContext);
 
   const formatFileSize = (size) => (size / 1024).toFixed(2);
 
@@ -38,7 +36,7 @@ const AttachmentLinkComponent = (props) => {
 
   const removeFromServer = async () => {
     try {
-      const response = parseAxiosResponse(await requestService('deleteattachment', { ref }));
+      const response = await Services.deleteAttachment({ ref });
       const removedAttachmentRef = response.data.ref;
       if (removedAttachmentRef === ref) {
         remove(name);
@@ -46,6 +44,7 @@ const AttachmentLinkComponent = (props) => {
     } catch (error) {
       const options = {
         error,
+        logout,
         repeatedCallback: removeFromServer,
         errorCallback: setError,
         errorMessage: 'Something went wrong on the way',
@@ -61,6 +60,7 @@ const AttachmentLinkComponent = (props) => {
     } catch (error) {
       const options = {
         error,
+        logout,
         repeatedCallback: downloadAttachmentFile,
         errorCallback: setError,
         errorMessage: 'Something went wrong on the way',

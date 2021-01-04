@@ -3,22 +3,18 @@ import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import { Button, Card, Collapse, Divider, Paper, TextField, Typography } from '@material-ui/core';
 import { Add, Cancel, Remove, Send } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  requestService,
-  parseAxiosResponse,
-  getErrorMessageResponse,
-  prepareFormData,
-  errorHandler,
-} from '../../../helpers/request.helper';
+import { getErrorMessageResponse, prepareFormData, errorHandler } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 import styles from './styles';
 import FileUpload from '../FileUpload/FileUpload';
 import { extractServerErrorMessage, extractServerSuccessfulMessage } from '../../../helpers/common.helper';
 import modeEnum from '../../../enums/mode.enum';
 import AttachmentsArea from '../AttachmentsArea/AttachmentsArea';
+import Services from '../../Services';
 
 const TextEditor = (props) => {
   const {
+    logout,
     mode,
     thread,
     setShowTextEditor,
@@ -63,13 +59,14 @@ const TextEditor = (props) => {
 
     try {
       setIsLoading(true);
-      messageReponse = prevMessageReponse || parseAxiosResponse(await requestService('sendmessage', params)); // *(1)
+      messageReponse = prevMessageReponse || (await Services.sendMessage(params)); // *(1)
       const uploadFileResponse = attachments.length ? await uploadFiles(messageReponse) : '';
       const [errorMessage = '', successMessage = ''] = getServerMessages(uploadFileResponse);
       onSuccessfulSendRequest(messageReponse, { errorMessage, successMessage, uploadFileResponse });
     } catch (error) {
       const options = {
         error,
+        logout,
         repeatedCallbackParams: messageReponse,
         repeatedCallback: requestSendMessage,
         errorCallback: setSnackbarMessage,
@@ -86,11 +83,12 @@ const TextEditor = (props) => {
 
     try {
       setIsLoading(true);
-      const response = parseAxiosResponse(await requestService('editmessage', params));
+      const response = await Services.editMessage(params);
       onSuccessfulEditRequest(response.data);
     } catch (error) {
       const options = {
         error,
+        logout,
         repeatedCallback: requestEditMessage,
         errorCallback: setSnackbarMessage,
         errorMessage: 'Something went wrong on the way',
@@ -101,12 +99,13 @@ const TextEditor = (props) => {
     }
   };
 
-  const uploadFiles = async (response) => {
+  const uploadFiles = async (messageResponse) => {
     try {
-      const ref = response.data.messages[0].ref;
+      const ref = messageResponse.data.messages[0].ref;
       const params = prepareFormData({ ref: ref, file: attachments });
 
-      return parseAxiosResponse(await requestService('uploadattachment', params)).data;
+      const { data } = await Services.uploadAttachment(params);
+      return data;
     } catch (error) {
       return getErrorMessageResponse(error);
     }

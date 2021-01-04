@@ -1,10 +1,9 @@
 import React, { useContext } from 'react';
 import { ContactMailOutlined, Edit, PersonOutline } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
-import { Paper, Checkbox, Typography } from '@material-ui/core';
+import { Checkbox, Typography } from '@material-ui/core';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import MainContext from '../MessagesMain/MessagesMainContext';
-import ThreadsContext from '../ThreadList/ThreadsContext';
 import modeEnum from '../../../enums/mode.enum';
 
 const MessageItemAvatar = (props) => {
@@ -13,12 +12,11 @@ const MessageItemAvatar = (props) => {
   const classes = useStyles();
   const isInternalMessage = processed === undefined;
   const mainContext = useContext(MainContext);
-  const threadContext = useContext(ThreadsContext);
 
   const getTime = (date) => new Date(date).toLocaleTimeString().slice(0, 5);
   const getLocaleDate = (date) => new Date(date).toLocaleDateString();
 
-  const { mode } = threadContext.state;
+  const { mode } = mainContext;
 
   const onEditClicked = () => {
     mainContext.editMessage(reference);

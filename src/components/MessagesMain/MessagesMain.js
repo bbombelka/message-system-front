@@ -6,11 +6,12 @@ import MessageToolbar from '../MessageToolbar/MessageToolbar';
 import TextEditor from '../TextEditor/TextEditor';
 import { Container, Snackbar, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import { requestService, parseAxiosResponse, errorHandler } from '../../../helpers/request.helper';
+import { errorHandler } from '../../../helpers/request.helper';
 import bool from '../../../enums/bool.enum';
 import MainContext from './MessagesMainContext';
 import modeEnum from '../../../enums/mode.enum';
 import styles from './styles';
+import Services from '../../Services';
 
 const MessagesMain = ({ toggleFullscreenLoader }) => {
   const classes = useStyle();
@@ -53,7 +54,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
     toggleFullscreenLoader();
     sessionStorage.clear();
 
-    requestService('logout', { login });
+    Services.logout({ login });
     history.push('/', { from: location.pathname });
   };
 
@@ -107,7 +108,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
         ref: refsForRequest.join(','),
         bulk: refsForRequest.length > 1 ? bool.TRUE : bool.FALSE,
       };
-      const { data } = parseAxiosResponse(await requestService(service, options));
+      const { data } = await Services.makeRequest(service, options);
 
       isDeleteService
         ? removeItems(data.ref, data.total)
@@ -115,6 +116,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
     } catch (error) {
       const options = {
         error,
+        logout,
         repeatedCallbackParams: service,
         repeatedCallback: makeRequest,
         errorCallback: setSnackbarMessage,
@@ -204,7 +206,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
 
   return (
     <div>
-      <MainContext.Provider value={{ editMessage, mode, setMode }}>
+      <MainContext.Provider value={{ editMessage, logout, mode, setMode }}>
         <MainBar toggleToolbar={toggleToolbar} logout={logout} />
         <MessageToolbar
           displayed={displayMessageToolbar}
@@ -221,6 +223,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
         />
         <Container classes={{ root: classes.containerRoot }} maxWidth="md">
           <TextEditor
+            logout={logout}
             mode={mode}
             onEditedMessage={onEditedMessage}
             editedMessage={editedMessage}
@@ -235,6 +238,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
             Your Current Messages
           </Typography>
           <ThreadList
+            logout={logout}
             mode={mode}
             messageRef={messages}
             ref={threads}

@@ -2,6 +2,7 @@ import axios from 'axios';
 import { config } from '../config';
 import { isFileObject } from '../helpers/common.helper';
 import errorCodesEnum from '../enums/errorCodes.enum';
+import Services from '../src/Services';
 
 const headers = {
   JSON: 'application/json',
@@ -44,7 +45,7 @@ export const getErrorCode = (error) => {
 };
 
 export const errorHandler = async (options) => {
-  const { error, repeatedCallback, repeatedCallbackParams, errorCallback, errorMessage = null } = options;
+  const { error, repeatedCallback, repeatedCallbackParams, errorCallback, errorMessage = null, logout } = options;
   const errorCode = getErrorCode(error) || error.code;
 
   if (errorCode === errorCodesEnum.EXPIRED_ACCESS_TOKEN) {
@@ -53,8 +54,7 @@ export const errorHandler = async (options) => {
       return repeatedCallback(repeatedCallbackParams);
     } catch (err) {
       if (err.message === errorCodesEnum.EXPIRED_REFRESH_TOKEN) {
-        sessionStorage.clear();
-        return console.log('token is not longer valid log out');
+        return logout();
       }
     }
   }
@@ -89,9 +89,7 @@ export const requestFileContent = async (service, requestParams) => {
 
 const renewToken = async () => {
   try {
-    const { data } = parseAxiosResponse(
-      await requestService('renewToken', { token: sessionStorage.getItem('refreshToken') })
-    );
+    const { data } = await Services.renewToken({ token: sessionStorage.getItem('refreshToken') });
     sessionStorage.setItem('accessToken', data.accessToken);
   } catch (error) {
     throw new Error(getErrorCode(error));

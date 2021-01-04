@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 import { Card } from '@material-ui/core';
 import boolEnum from '../../../enums/bool.enum';
 import ThreadItem from '../ThreadItem/ThreadItem';
-import { requestService, parseAxiosResponse, errorHandler } from '../../../helpers/request.helper';
+import { errorHandler } from '../../../helpers/request.helper';
 import { config } from '../../../config';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import errorsEnum from '../../../enums/errors.enum';
 import iconEnum from '../Icon/Icon.enum';
 import { withStyles } from '@material-ui/core/styles';
-import ThreadsContext from './ThreadsContext';
+import Services from '../../Services';
 
 class ThreadList extends Component {
   state = {
@@ -30,10 +30,11 @@ class ThreadList extends Component {
   fetchThreadData = async (num = config.NUMBER_OF_FETCHED_THREADS, skip = 0) => {
     const params = { num, skip };
     try {
-      const response = parseAxiosResponse(await requestService('getthreads', params));
+      const response = await Services.getThreads(params);
       this.onSuccessfulThreadFetch(response);
     } catch (error) {
       const errorHandlerOptions = {
+        logout: this.props.logout,
         error,
         repeatedCallback: this.fetchThreadData,
         errorCallback: this.onFailedThreadFetch,
@@ -175,6 +176,7 @@ class ThreadList extends Component {
       threads.map((thread) => (
         <ThreadItem
           key={thread.ref}
+          logout={this.props.logout}
           markAsRead={this.markAsRead}
           ref={thread.selected && this.props.messageRef}
           select={this.handleThreadSelection}
@@ -185,7 +187,7 @@ class ThreadList extends Component {
       ))
     ) : (
       <CustomNotification
-        linkCallback={() => console.log('log out man')} //could place common callbacks in separate module
+        linkCallback={() => this.props.logout()}
         linkMessage={'Log out.'}
         message={'You have no messages'}
         type={iconEnum.INFO}
@@ -201,9 +203,7 @@ class ThreadList extends Component {
         backgroundColor={'white'}
       />
     ) : (
-      <ThreadsContext.Provider value={{ state: this.state }}>
-        <Card classes={{ root: this.props.classes.root }}>{!loading && threadList}</Card>
-      </ThreadsContext.Provider>
+      <Card classes={{ root: this.props.classes.root }}>{!loading && threadList}</Card>
     );
   }
 }

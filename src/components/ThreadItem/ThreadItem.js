@@ -4,17 +4,13 @@ import { Collapse, Divider, Paper } from '@material-ui/core';
 import MessageItem from '../MessageItem/MessageItem';
 import ThreadBar from '../ThreadBar/ThreadBar';
 import { config } from '../../../config';
-import {
-  errorHandler,
-  requestService,
-  parseAxiosResponse,
-  getErrorMessageResponse,
-} from '../../../helpers/request.helper';
+import { errorHandler } from '../../../helpers/request.helper';
 import CustomNotification from '../CustomNotification/CustomNotification';
 import iconEnum from '../Icon/Icon.enum';
 import bool from '../../../enums/bool.enum';
 import ButtonWithLoader from '../ButtonWithLoader/ButtonWithLoader';
 import { AddCircle } from '@material-ui/icons';
+import Services from '../../Services';
 
 class ThreadItem extends Component {
   state = {
@@ -34,11 +30,12 @@ class ThreadItem extends Component {
 
     try {
       this.setState({ loading: true });
-      const response = parseAxiosResponse(await requestService('getmessages', params));
+      const response = await Services.getMessages(params);
       this.onSuccessfulMessageFetch(response.data);
     } catch (error) {
       const options = {
         error,
+        logout: this.props.logout,
         repeatedCallback: this.fetchMessages,
         errorCallback: this.onFailedFetch,
         errorMessage: true,
@@ -99,11 +96,12 @@ class ThreadItem extends Component {
   fetchMoreMessages = async (params) => {
     try {
       this.setState({ loadingMore: true });
-      const response = parseAxiosResponse(await requestService('getmessages', params));
+      const response = await Services.getMessages(params);
       this.onSuccessfulLoadMoreMessagesFetch(response.data);
     } catch (error) {
       const options = {
         error,
+        logout: this.props.logout,
         repeatedCallback: this.fetchMoreMessages,
         repeatedCallbackParams: params,
         errorCallback: this.onFailedMoreMessageFetch,
