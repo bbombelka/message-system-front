@@ -14,12 +14,14 @@ import Services from '../../Services';
 
 const AttachmentLinkComponent = (props) => {
   const { name, size, mimetype, ref } = props.attachment;
-  const { mode, remove } = props;
+  const { isInsideMessage, mode, remove } = props;
   const [error, setError] = useState('');
-  const classes = useStyles({ isEditionOrUpload });
+  const [hasDisplayedConfirmation, setHasDisplayedConfirmation] = useState(false);
+  const [isMakingRequest, setIsMakingRequest] = useState(false);
+  const classes = useStyles({ isEditionOrUpload, isMakingRequest });
   const isEditionOrUpload = mode === modeEnum.FILE_UPLOAD || mode === modeEnum.EDITION;
 
-  const { logout } = useContext(MainContext);
+  const { logout, removeAttachment, setSnackbarMessage } = useContext(MainContext);
 
   const formatFileSize = (size) => (size / 1024).toFixed(2);
 
@@ -35,11 +37,18 @@ const AttachmentLinkComponent = (props) => {
   };
 
   const removeFromServer = async () => {
+    if (!hasDisplayedConfirmation) {
+      setHasDisplayedConfirmation(true);
+      return setSnackbarMessage('File will be irrevresibly removed from the message. Click remove again to continue.');
+    }
+
     try {
+      setIsMakingRequest(true);
       const response = await Services.deleteAttachment({ ref });
       const removedAttachmentRef = response.data.ref;
       if (removedAttachmentRef === ref) {
         remove(name);
+        removeAttachment(ref);
       }
     } catch (error) {
       const options = {
@@ -50,6 +59,8 @@ const AttachmentLinkComponent = (props) => {
         errorMessage: 'Something went wrong on the way',
       };
       errorHandler(options);
+    } finally {
+      setIsMakingRequest(false);
     }
   };
 
@@ -83,10 +94,16 @@ const AttachmentLinkComponent = (props) => {
     <Fragment>
       <Typography className={classes.root} onClick={onLinkClick}>
         <span>{linkIcon}</span>
-        <span className={classes.linkText}>{isEditionOrUpload ? <span>{name}</span> : <a href="#">{name}</a>}</span>
-        {size && <span className={classes.fileSize}>({formatFileSize(size)} Kb)</span>}
+        <span className={classes.linkText}>
+          {isEditionOrUpload && !isInsideMessage ? <span>{name}</span> : <a href="#">{name}</a>}
+        </span>
+        {Boolean(size) && <span className={classes.fileSize}>({formatFileSize(size)} Kb)</span>}
       </Typography>
-      {isEditionOrUpload ? <Cancel onClick={onRemoveAttachmentClick} className={classes.cancel}></Cancel> : ''}
+      {isEditionOrUpload && !isInsideMessage ? (
+        <Cancel onClick={onRemoveAttachmentClick} className={classes.cancel}></Cancel>
+      ) : (
+        ''
+      )}
       <Dialog open={Boolean(error)}>
         <CustomNotification
           linkCallback={() => setError('')}

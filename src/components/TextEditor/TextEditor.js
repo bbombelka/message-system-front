@@ -36,7 +36,7 @@ const TextEditor = (props) => {
   const [attachments, setAttachments] = useState([]);
   const [attachmentError, setAttachmentError] = useState('');
 
-  const classes = useStyles();
+  const classes = useStyles(props);
 
   useEffect(() => {
     thread ? setTitle(thread.title) : setTitle('');
@@ -326,7 +326,7 @@ const TextEditor = (props) => {
                 </div>
                 <div>
                   <ButtonWithLoader
-                    click={editedMessage ? requestEditMessage : () => requestSendMessage()}
+                    click={editedMessage ? () => requestEditMessage() : () => requestSendMessage()}
                     disabled={isSendButtonDisabled}
                     icon={<Send />}
                     isLoading={isLoading}

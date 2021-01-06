@@ -1,4 +1,4 @@
-import React, { Fragment, useContext } from 'react';
+import React, { Fragment, useContext, useRef } from 'react';
 import { Card, Divider, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { AttachmentLink } from '../AttachmentLink/AttachmentLink';
@@ -10,21 +10,26 @@ const AttachmentsArea = (props) => {
   const { attachments, margin, reference, remove } = props;
   const classes = useStyles({ margin });
   const { mode } = useContext(MainContext);
+  const attachmentsArea = useRef(null);
 
   const isFileUpload = mode === modeEnum.FILE_UPLOAD;
-  const allAttachmentsLinkProps = {
-    ref: reference,
-    name: 'Download Zipped',
-  };
+
+  const isInsideMessage = attachmentsArea.current?.parentElement?.id === 'message-item';
 
   return (
-    <Fragment>
+    <div ref={attachmentsArea}>
       <Card className={classes.root}>
         <Typography className={classes.text}>Attachments to this message:</Typography>
         {attachments.map((attach, index) => (
-          <AttachmentLink attachment={attach} mode={mode} key={index} remove={remove} />
+          <AttachmentLink
+            attachment={attach}
+            isInsideMessage={isInsideMessage}
+            mode={mode}
+            key={index}
+            remove={remove}
+          />
         ))}
-        {attachments.length > 1 && mode !== modeEnum.EDITION ? (
+        {attachments.length > 1 && (isInsideMessage || mode !== modeEnum.EDITION) ? (
           <Fragment>
             <Divider variant="middle" />
             {isFileUpload ? (
@@ -39,7 +44,12 @@ const AttachmentsArea = (props) => {
                 <Typography className={classes.text + ' ' + classes.allAttachment}>
                   Download all attachments as ZIP file:
                 </Typography>
-                <AttachmentLink attachment={allAttachmentsLinkProps} />
+                <AttachmentLink
+                  attachment={{
+                    ref: reference,
+                    name: 'Download Zipped',
+                  }}
+                />
               </Fragment>
             )}
           </Fragment>
@@ -47,7 +57,7 @@ const AttachmentsArea = (props) => {
           ''
         )}
       </Card>
-    </Fragment>
+    </div>
   );
 };
 

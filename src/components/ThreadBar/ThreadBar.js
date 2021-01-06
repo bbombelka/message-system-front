@@ -22,6 +22,7 @@ const ThreadBar = (props) => {
     type,
   } = props;
   const { mode } = useContext(MainContext);
+
   const classes = useStyle({ mode });
   const chevronClassName = classes.chevron.concat(selected ? ` ${classes.chevronSelected}` : '');
   const titleClassName = classes.flexAlignCenter.concat(loading ? ` ${classes.loading}` : '');
@@ -29,12 +30,13 @@ const ThreadBar = (props) => {
   const onClick = () => {
     switch (mode) {
       case modeEnum.MARK_MESSAGE:
-      case modeEnum.THREAD_MESSAGE:
+      case modeEnum.MARK_THREAD:
         return setSnackbarMessage('Disable mark mode first.');
       case modeEnum.INTERACTION:
         return onThreadBarClick();
       case modeEnum.EDITION:
       case modeEnum.FILE_UPLOAD:
+      case modeEnum.SEND_MESSAGE:
         return setSnackbarMessage('Please close message editor before selecting another thread.');
       default:
         return onThreadBarClick();

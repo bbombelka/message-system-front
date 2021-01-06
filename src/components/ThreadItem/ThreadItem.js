@@ -208,6 +208,20 @@ class ThreadItem extends Component {
     });
   };
 
+  onAttachmentRemoved = (messageRef, attachmentRef) => {
+    const { messages } = this.state.messageContent;
+    const messageWithRemovedAttachment = messages.find((message) => message.ref === messageRef);
+    const attachmentIndex = messageWithRemovedAttachment.attach.findIndex((attach) => attach.ref === attachmentRef);
+    messageWithRemovedAttachment.attach.splice(attachmentIndex, 1);
+
+    this.setState({
+      messageContent: {
+        total: this.state.messageContent.total,
+        messages: this.state.messageContent.messages,
+      },
+    });
+  };
+
   render() {
     const { ref, marked, messageNumber, read, selected, title, type } = this.props.thread;
     const { classes, toggleMark } = this.props;

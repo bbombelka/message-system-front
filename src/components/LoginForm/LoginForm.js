@@ -207,6 +207,12 @@ class LoginFormComponent extends Component {
     });
   };
 
+  onKeyDown = (e) => {
+    if (e.keyCode === 13) {
+      this.onLogInButtonClick();
+    }
+  };
+
   render() {
     const {
       isMakingRequest,
@@ -265,6 +271,7 @@ class LoginFormComponent extends Component {
                   labelWidth={70}
                   disabled={passwordTextFieldIsDisabled}
                   id="password"
+                  onKeyDown={this.onKeyDown}
                   onChange={this.onChange('passwordTextFieldValue')}
                   type={showPassword ? 'text' : 'password'}
                   value={passwordTextFieldValue}

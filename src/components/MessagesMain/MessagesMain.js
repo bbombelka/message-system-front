@@ -12,6 +12,7 @@ import MainContext from './MessagesMainContext';
 import modeEnum from '../../../enums/mode.enum';
 import styles from './styles';
 import Services from '../../Services';
+import { usePrevious } from '../../../hooks/hooks';
 
 const MessagesMain = ({ toggleFullscreenLoader }) => {
   const classes = useStyle();
@@ -26,6 +27,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   const messages = useRef(null);
   const history = useHistory();
   const location = useLocation();
+  const previousMode = usePrevious(mode);
   const isToolbarVertical = window.innerWidth > 1057;
   const markMode = mode === modeEnum.MARK_THREAD || mode === modeEnum.MARK_MESSAGE;
   // add resize listener
@@ -41,12 +43,27 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   }, [displayMessageToolbar]);
 
   useEffect(() => {
-    !showTextEditor && setEditedMessage(undefined);
+    if (!showTextEditor) {
+      setEditedMessage(undefined);
+      setMode(modeEnum.INTERACTION);
+    } else {
+      editedMessage ? setMode(modeEnum.EDITION) : setMode(modeEnum.SEND_MESSAGE);
+    }
   }, [showTextEditor]);
 
   useEffect(() => {
     !editedMessage && setMode(modeEnum.INTERACTION);
   }, [editedMessage]);
+
+  useEffect(() => {
+    if (mode === modeEnum.EDITION || mode === modeEnum.SEND_MESSAGE) {
+      return setDisplayMessageToolbar(false);
+    }
+
+    if (previousMode === modeEnum.EDITION || previousMode === modeEnum.SEND_MESSAGE) {
+      return setDisplayMessageToolbar(true);
+    }
+  }, [mode]);
 
   const logout = () => {
     const login = sessionStorage.getItem('login');
@@ -204,9 +221,17 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
 
   const selectedThread = isMessage ? threads.current.state.threads.find(({ selected }) => selected) : null;
 
+  const removeAttachment = (attachmentRef) => {
+    const { ref } = messages.current.state.messageContent.messages.find((message) =>
+      message.attach.some((attach) => attach.ref === attachmentRef)
+    );
+
+    messages.current.onAttachmentRemoved(ref, attachmentRef);
+  };
+
   return (
     <div>
-      <MainContext.Provider value={{ editMessage, logout, mode, setMode }}>
+      <MainContext.Provider value={{ editMessage, logout, mode, removeAttachment, setMode, setSnackbarMessage }}>
         <MainBar toggleToolbar={toggleToolbar} logout={logout} />
         <MessageToolbar
           displayed={displayMessageToolbar}
@@ -230,6 +255,7 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
             onNewThreadStarted={onNewThreadStarted}
             onRepliedInThread={onRepliedInThread}
             showTextEditor={showTextEditor}
+            setMode={setMode}
             setSnackbarMessage={setSnackbarMessage}
             setShowTextEditor={setShowTextEditor}
             thread={selectedThread}

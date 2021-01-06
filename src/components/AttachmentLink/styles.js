@@ -4,6 +4,7 @@ export default {
     display: 'inline-flex',
     margin: '8px',
     cursor: (isEditionOrUpload) => (isEditionOrUpload ? 'auto' : 'pointer'),
+    opacity: ({ isMakingRequest }) => (isMakingRequest ? '.5' : '1'),
   },
   fileSize: {
     fontSize: '10px',

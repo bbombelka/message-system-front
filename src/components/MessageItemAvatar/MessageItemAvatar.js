@@ -11,16 +11,12 @@ const MessageItemAvatar = (props) => {
   const processedStatus = processed ? 'Read by consultant' : 'Awaiting consideration';
   const classes = useStyles();
   const isInternalMessage = processed === undefined;
-  const mainContext = useContext(MainContext);
+  const { mode, editMessage } = useContext(MainContext);
 
   const getTime = (date) => new Date(date).toLocaleTimeString().slice(0, 5);
   const getLocaleDate = (date) => new Date(date).toLocaleDateString();
 
-  const { mode } = mainContext;
-
-  const onEditClicked = () => {
-    mainContext.editMessage(reference);
-  };
+  const isEditButtonDisabled = mode === modeEnum.MARK_MESSAGE;
 
   return (
     <div className={classes.root}>
@@ -53,8 +49,9 @@ const MessageItemAvatar = (props) => {
       {!isInternalMessage && processed === false ? (
         <div>
           <ButtonWithLoader
-            click={onEditClicked}
+            click={() => editMessage(reference)}
             icon={<Edit></Edit>}
+            disabled={isEditButtonDisabled}
             styles={{ margin: '4px 0', backgroundColor: 'white' }}
           >
             Edit

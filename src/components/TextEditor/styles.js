@@ -1,3 +1,5 @@
+import modeEnum from '../../../enums/mode.enum';
+
 export default function (theme) {
   return {
     barCard: {
@@ -61,6 +63,9 @@ export default function (theme) {
     root: {
       margin: '24px 0 0',
       position: 'sticky',
+      [theme.breakpoints.up('md')]: {
+        position: ({ mode }) => (mode === modeEnum.EDITION || mode === modeEnum.FILE_UPLOAD ? 'sticky' : 'static'),
+      },
       top: 0,
       zIndex: 2,
     },

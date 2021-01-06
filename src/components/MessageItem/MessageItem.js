@@ -25,7 +25,9 @@ const MessageItem = (props) => {
           <Typography classes={{ root: classes.content }}>
             <span dangerouslySetInnerHTML={{ __html: text }}></span>
           </Typography>
-          {Boolean(attachments.length) && <AttachmentsArea attachments={attachments} reference={ref} key={ref} />}
+          <div id="message-item">
+            {Boolean(attachments.length) ? <AttachmentsArea attachments={attachments} reference={ref} key={ref} /> : ''}
+          </div>
         </div>
       </div>
     </React.Fragment>
