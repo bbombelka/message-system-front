@@ -1,7 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { IconButton, Toolbar, Tooltip } from '@material-ui/core';
 import {
   AlternateEmail,
+  ArrowDropUp,
+  ArrowDropDown,
+  ArrowLeft,
+  ArrowRight,
   CheckBox,
   CheckBoxOutlineBlank,
   Create,
@@ -16,7 +20,8 @@ import modeEnum from '../../../enums/mode.enum';
 
 const MessageToolbar = (props) => {
   const {
-    displayed,
+    isDisplayed,
+    displayMessageToolbar,
     isMessage,
     makeRequest,
     markAll,
@@ -38,10 +43,16 @@ const MessageToolbar = (props) => {
 
     const toolbarClassName = classes.root
       .concat(` ${classes[orientation]}`)
-      .concat(displayed ? ` ${classes[orientation + 'Visible']}` : '');
+      .concat(isDisplayed ? ` ${classes[orientation + 'Visible']}` : '');
 
     return toolbarClassName;
   };
+
+  const isDisplayButtonDisabled = mode === modeEnum.EDITION || mode === modeEnum.SEND_MESSAGE;
+
+  const displayButtonClassName = `${classes.displayButton} ${
+    vertical ? classes.displayButtonVertical : classes.displayButtonHorizontal
+  }`;
 
   const onMarkButtonClick = () => {
     setMode((currentValue) =>
@@ -96,6 +107,23 @@ const MessageToolbar = (props) => {
 
   return (
     <Toolbar className={getToolbarClassName()}>
+      <IconButton
+        disabled={isDisplayButtonDisabled}
+        onClick={() => displayMessageToolbar((prevVal) => !prevVal)}
+        className={displayButtonClassName}
+      >
+        {isDisplayed ? (
+          vertical ? (
+            <ArrowLeft fontSize="large" />
+          ) : (
+            <ArrowDropDown fontSize="large" />
+          )
+        ) : vertical ? (
+          <ArrowRight fontSize="large" />
+        ) : (
+          <ArrowDropUp fontSize="large" />
+        )}
+      </IconButton>
       {!markMode ? (
         <Tooltip
           classes={{ tooltip: classes.tooltip }}

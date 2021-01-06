@@ -10,6 +10,18 @@ export default {
   button: {
     color: 'beige',
   },
+  displayButton: {
+    color: 'rgba(100,0,0,0.87)',
+    position: 'absolute',
+  },
+  displayButtonHorizontal: {
+    left: 'calc(50% - 24px)',
+    bottom: '100%',
+  },
+  displayButtonVertical: {
+    top: 'calc(50% - 24px)',
+    left: '100%',
+  },
   vertical: {
     left: '-48px',
     flexDirection: 'column',

@@ -4,7 +4,7 @@ import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core/';
 import { ExitToApp, Mail } from '@material-ui/icons';
 import styles from './styles';
 
-const MainBar = ({ toggleToolbar, logout }) => {
+const MainBar = ({ logout }) => {
   const classes = useStyles();
   const [userName] = useState(sessionStorage.getItem('name'));
 
@@ -12,7 +12,7 @@ const MainBar = ({ toggleToolbar, logout }) => {
     <div className={classes.grow}>
       <AppBar classes={{ root: classes.bordoBackground }} position="static">
         <Toolbar>
-          <IconButton edge="start" className={classes.menuButton} color="inherit" onClick={() => toggleToolbar()}>
+          <IconButton edge="start" className={classes.menuButton} color="inherit">
             <Mail />
           </IconButton>
           <Typography className={classes.title} variant="h6" noWrap>

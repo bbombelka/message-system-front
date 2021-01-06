@@ -22,15 +22,16 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showTextEditor, setShowTextEditor] = useState(false);
   const [editedMessage, setEditedMessage] = useState(undefined);
+  const [isToolbarVertical, setPosition] = useState(window.innerWidth > 1058);
 
   const threads = useRef(null);
   const messages = useRef(null);
   const history = useHistory();
   const location = useLocation();
   const previousMode = usePrevious(mode);
-  const isToolbarVertical = window.innerWidth > 1057;
+
   const markMode = mode === modeEnum.MARK_THREAD || mode === modeEnum.MARK_MESSAGE;
-  // add resize listener
+  window.addEventListener('resize', () => setPosition(window.innerWidth > 1058));
 
   useEffect(() => {
     const isThreadSelected = Boolean(threads.current.getSelectedThread());
@@ -232,10 +233,11 @@ const MessagesMain = ({ toggleFullscreenLoader }) => {
   return (
     <div>
       <MainContext.Provider value={{ editMessage, logout, mode, removeAttachment, setMode, setSnackbarMessage }}>
-        <MainBar toggleToolbar={toggleToolbar} logout={logout} />
+        <MainBar logout={logout} />
         <MessageToolbar
-          displayed={displayMessageToolbar}
+          displayMessageToolbar={setDisplayMessageToolbar}
           vertical={isToolbarVertical}
+          isDisplayed={displayMessageToolbar}
           isMessage={isMessage}
           makeRequest={makeRequest}
           markAll={markAll}

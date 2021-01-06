@@ -61,6 +61,7 @@ const AttachmentLinkComponent = (props) => {
       errorHandler(options);
     } finally {
       setIsMakingRequest(false);
+      setHasDisplayedConfirmation(false);
     }
   };
 
