@@ -32,8 +32,5 @@ module.exports = {
     contentBase: './dist',
     hot: true,
   },
-  optimization: {
-    minimize: false,
-  },
   devtool: 'source-map',
 };
